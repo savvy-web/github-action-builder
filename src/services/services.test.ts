@@ -139,7 +139,8 @@ export default {
 				const validationService = yield* ValidationService;
 
 				const { config } = yield* configService.load({ cwd: testDir });
-				const result = yield* validationService.validate(config, { cwd: testDir });
+				// Explicitly disable strict mode for predictable test behavior
+				const result = yield* validationService.validate(config, { cwd: testDir, strict: false });
 				return result;
 			});
 
@@ -157,7 +158,8 @@ export default {
 				const validationService = yield* ValidationService;
 
 				const { config } = yield* configService.load({ cwd: testDir });
-				const result = yield* validationService.validate(config, { cwd: testDir });
+				// Explicitly disable strict mode for predictable test behavior
+				const result = yield* validationService.validate(config, { cwd: testDir, strict: false });
 				return result;
 			});
 
@@ -173,7 +175,8 @@ export default {
 				const validationService = yield* ValidationService;
 
 				const { config } = yield* configService.load({ cwd: testDir });
-				const result = yield* validationService.validate(config, { cwd: testDir });
+				// Explicitly disable strict mode for predictable test behavior
+				const result = yield* validationService.validate(config, { cwd: testDir, strict: false });
 				const formatted = validationService.formatResult(result);
 				return { formatted, result };
 			});
@@ -186,6 +189,42 @@ export default {
 			if (result.valid && result.warnings.length === 0) {
 				expect(formatted).toContain("passed");
 			}
+		});
+
+		it("fails with ValidationFailed in strict mode when warnings exist", async () => {
+			rmSync(resolve(testDir, "action.yml"));
+
+			const program = Effect.gen(function* () {
+				const configService = yield* ConfigService;
+				const validationService = yield* ValidationService;
+
+				const { config } = yield* configService.load({ cwd: testDir });
+				// Enable strict mode - warnings should become errors
+				const result = yield* validationService.validate(config, { cwd: testDir, strict: true });
+				return result;
+			}).pipe(Effect.either);
+
+			const result = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+
+			// In strict mode with warnings, should fail with ValidationFailed
+			expect(result._tag).toBe("Left");
+			if (result._tag === "Left") {
+				expect(result.left._tag).toBe("ValidationFailed");
+			}
+		});
+
+		it("isStrict returns correct value based on config", async () => {
+			const program = Effect.gen(function* () {
+				const validationService = yield* ValidationService;
+				const explicitTrue = yield* validationService.isStrict(true);
+				const explicitFalse = yield* validationService.isStrict(false);
+				return { explicitTrue, explicitFalse };
+			});
+
+			const result = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+
+			expect(result.explicitTrue).toBe(true);
+			expect(result.explicitFalse).toBe(false);
 		});
 	});
 

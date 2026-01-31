@@ -77,7 +77,8 @@ runs:
 	describe("validate", () => {
 		it("validates successfully with valid setup", async () => {
 			const action = GitHubAction.create({ cwd: testDir });
-			const result = await action.validate();
+			// Explicitly disable strict mode for predictable test behavior
+			const result = await action.validate({ strict: false });
 
 			expect(result.valid).toBe(true);
 		});
@@ -87,7 +88,8 @@ runs:
 			rmSync(resolve(testDir, "action.yml"));
 
 			const action = GitHubAction.create({ cwd: testDir });
-			const result = await action.validate();
+			// Explicitly disable strict mode for predictable test behavior
+			const result = await action.validate({ strict: false });
 
 			// Should have warning about missing action.yml
 			expect(result.warnings.length + result.errors.length).toBeGreaterThan(0);

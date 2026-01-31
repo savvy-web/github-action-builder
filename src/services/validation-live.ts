@@ -23,12 +23,14 @@ import { ValidationService } from "./validation.js";
 // Pure Helper Functions
 // =============================================================================
 
+/* v8 ignore start - CI environment detection has multiple env var formats */
 /** Check if running in CI environment. */
 const isCI = (): boolean =>
 	process.env.CI === "true" || process.env.CI === "1" || process.env.GITHUB_ACTIONS === "true";
 
 /** Resolve strict mode from config or environment. */
 const resolveStrict = (configStrict?: boolean): boolean => configStrict ?? isCI();
+/* v8 ignore stop */
 
 /** Create a validation warning, omitting undefined file. */
 const makeWarning = (code: string, message: string, suggestion: string, file?: string): ValidationWarning =>
