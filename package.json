@@ -45,7 +45,7 @@
 		"build:inspect": "rslib inspect --config-loader native --env-mode npm --verbose",
 		"build:prod": "rslib build --config-loader native --env-mode npm",
 		"ci:build": "CI=\"true\" turbo run build:dev build:prod --log-order=grouped --output-logs=full",
-		"ci:test": "CI=\"true\" turbo run test:coverage --log-prefix=none --log-order=grouped",
+		"ci:test": "CI=\"true\" vitest run --coverage",
 		"ci:version": "changeset version && biome format --write .",
 		"lint": "biome check --max-diagnostics=none",
 		"lint:fix": "biome check --write --max-diagnostics=none",
