@@ -46,8 +46,7 @@ const validateHandler = ({ config, quiet }: { config: Option.Option<string>; qui
 		yield* Console.log(`\n${validationService.formatResult(validationResult)}`);
 
 		if (!validationResult.valid) {
-			yield* Effect.fail(new Error("Validation failed"));
-			return;
+			return yield* Effect.fail(new Error("Validation failed"));
 		}
 
 		if (!quiet) {

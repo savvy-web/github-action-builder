@@ -241,8 +241,7 @@ const initHandler = ({ actionName, force }: { actionName: string; force: boolean
 		if (existsSync(projectDir) && !force) {
 			yield* Console.error(`Directory already exists: ${actionName}`);
 			yield* Console.error("Use --force to overwrite existing files.");
-			yield* Effect.fail(new Error("Directory exists"));
-			return;
+			return yield* Effect.fail(new Error("Directory exists"));
 		}
 
 		// Create project directory

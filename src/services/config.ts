@@ -12,6 +12,7 @@ import { Context, Schema } from "effect";
 
 import type { ConfigError, MainEntryMissing } from "../errors.js";
 import type { Config, ConfigInput } from "../schemas/config.js";
+import { ConfigSchema } from "../schemas/config.js";
 import { OptionalPathLikeSchema } from "../schemas/path.js";
 
 // =============================================================================
@@ -89,7 +90,7 @@ export type DetectEntriesResult = typeof DetectEntriesResultSchema.Type;
  */
 export const LoadConfigResultSchema = Schema.Struct({
 	/** The resolved configuration. */
-	config: Schema.Any,
+	config: ConfigSchema,
 	/** Path to the config file that was loaded, if any. */
 	configPath: Schema.optional(Schema.String),
 	/** Whether defaults were used (no config file found). */

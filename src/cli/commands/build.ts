@@ -80,8 +80,7 @@ const buildHandler = ({
 
 			if (!validationResult.valid) {
 				yield* Console.error(`\n${validationService.formatResult(validationResult)}`);
-				yield* Effect.fail(new Error("Validation failed"));
-				return;
+				return yield* Effect.fail(new Error("Validation failed"));
 			}
 
 			if (!quiet && validationResult.warnings.length > 0) {
@@ -100,8 +99,7 @@ const buildHandler = ({
 
 		if (!buildResult.success) {
 			yield* Console.error(`\nBuild failed: ${buildResult.error}`);
-			yield* Effect.fail(new Error("Build failed"));
-			return;
+			return yield* Effect.fail(new Error("Build failed"));
 		}
 
 		if (!quiet) {
