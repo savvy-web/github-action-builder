@@ -80,7 +80,7 @@
 		"@savvy-web/lint-staged": "^0.1.2",
 		"@savvy-web/rslib-builder": "^0.7.0",
 		"@types/node": "^25.1.0",
-		"@typescript/native-preview": "7.0.0-dev.20260130.1",
+		"@typescript/native-preview": "7.0.0-dev.20260131.1",
 		"@vitest/coverage-v8": "^4.0.18",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
