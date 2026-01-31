@@ -2,6 +2,24 @@
 	"$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
 	"noStandardTags": false,
 	"reportUnsupportedHtmlElements": false,
+	"tagDefinitions": [
+		{
+			"tagName": "@schema",
+			"syntaxKind": "modifier"
+		},
+		{
+			"tagName": "@layer",
+			"syntaxKind": "modifier"
+		},
+		{
+			"tagName": "@service",
+			"syntaxKind": "modifier"
+		},
+		{
+			"tagName": "@error",
+			"syntaxKind": "modifier"
+		}
+	],
 	"supportForTags": {
 		"@deprecated": true,
 		"@label": true,
@@ -31,6 +49,10 @@
 		"@beta": true,
 		"@experimental": true,
 		"@internal": true,
-		"@public": true
+		"@public": true,
+		"@schema": true,
+		"@layer": true,
+		"@service": true,
+		"@error": true
 	}
 }

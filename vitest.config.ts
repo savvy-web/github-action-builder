@@ -28,15 +28,21 @@ export default defineConfig({
 				"**/*.d.ts",
 				"**/*.test.{ts,tsx}",
 				"**/*.spec.{ts,tsx}",
+				// Exclude barrel file (re-exports only)
+				"src/index.ts",
+				// Exclude CLI (requires integration testing)
+				"src/cli/**",
+				// Exclude build service (requires actual ncc bundling)
+				"src/services/build-live.ts",
 			],
 			include: ["src/**/*.{ts,tsx}"],
 			clean: true,
 			// Coverage thresholds (adjust as needed)
 			thresholds: {
-				lines: 5,
-				functions: 5,
-				branches: 5,
-				statements: 5,
+				lines: 85,
+				functions: 85,
+				branches: 85,
+				statements: 85,
 			},
 			reportOnFailure: true,
 		},

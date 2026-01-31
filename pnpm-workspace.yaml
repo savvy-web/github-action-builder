@@ -5,4 +5,5 @@ onlyBuiltDependencies:
   - "@parcel/watcher"
   - core-js
   - esbuild
+  - msgpackr-extract
 preferFrozenLockfile: true

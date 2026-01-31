@@ -1,12 +1,30 @@
 {
-	"name": "@savvy-web/pnpm-module-template",
+	"name": "@savvy-web/github-action-builder",
 	"version": "0.0.0",
 	"private": true,
-	"description": "A template repository for developing and deploying Node.js modules from a pnpm monorepo structure.",
-	"homepage": "https://github.com/spencerbeggs/pnpm-module-template#readme",
+	"description": "A zero-config build tool for creating GitHub Actions from TypeScript. Bundles with @vercel/ncc, validates action.yml against GitHub's schema, and outputs production-ready Node.js 24 actions.",
+	"keywords": [
+		"github-actions",
+		"github",
+		"actions",
+		"ncc",
+		"vercel-ncc",
+		"bundler",
+		"typescript",
+		"node24",
+		"cli",
+		"build-tool",
+		"action-builder",
+		"effect-ts",
+		"esm"
+	],
+	"homepage": "https://github.com/savvy-web/github-action-builder#readme",
+	"bugs": {
+		"url": "https://github.com/savvy-web/github-action-builder/issues"
+	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/spencerbeggs/pnpm-module-template.git"
+		"url": "https://github.com/savvy-web/github-action-builder.git"
 	},
 	"license": "MIT",
 	"author": {
@@ -18,13 +36,16 @@
 	"exports": {
 		".": "./src/index.ts"
 	},
+	"bin": {
+		"github-action-builder": "./src/cli/index.ts"
+	},
 	"scripts": {
 		"build": "turbo run build:dev build:prod --log-order=grouped",
 		"build:dev": "rslib build --config-loader native --env-mode dev",
 		"build:inspect": "rslib inspect --config-loader native --env-mode npm --verbose",
 		"build:prod": "rslib build --config-loader native --env-mode npm",
 		"ci:build": "CI=\"true\" turbo run build:dev build:prod --log-order=grouped --output-logs=full",
-		"ci:test": "CI=\"true\" turbo run test:coverage --log-prefix=none --log-order=grouped",
+		"ci:test": "CI=\"true\" vitest run --coverage",
 		"ci:version": "changeset version && biome format --write .",
 		"lint": "biome check --max-diagnostics=none",
 		"lint:fix": "biome check --write --max-diagnostics=none",
@@ -38,22 +59,34 @@
 		"typecheck": "turbo run types:check --log-prefix=none --log-order=grouped",
 		"types:check": "tsgo --noEmit"
 	},
+	"dependencies": {
+		"@effect/cli": "^0.73.1",
+		"@effect/platform": "^0.94.2",
+		"@effect/platform-node": "^0.104.1",
+		"@effect/printer": "^0.47.0",
+		"@effect/printer-ansi": "^0.47.0",
+		"@effect/typeclass": "^0.38.0",
+		"@vercel/ncc": "^0.38.4",
+		"effect": "^3.19.15",
+		"picocolors": "^1.1.1",
+		"yaml": "^2.8.2"
+	},
 	"devDependencies": {
 		"@changesets/cli": "^2.29.8",
-		"@commitlint/cli": "^20.3.1",
-		"@commitlint/config-conventional": "^20.3.1",
-		"@microsoft/api-extractor": "^7.55.2",
-		"@rslib/core": "^0.19.3",
+		"@commitlint/cli": "^20.4.0",
+		"@commitlint/config-conventional": "^20.4.0",
+		"@microsoft/api-extractor": "^7.56.0",
+		"@rslib/core": "^0.19.4",
 		"@savvy-web/lint-staged": "^0.1.2",
-		"@savvy-web/rslib-builder": "^0.5.0",
-		"@types/node": "^25.0.10",
-		"@typescript/native-preview": "7.0.0-dev.20260127.1",
+		"@savvy-web/rslib-builder": "^0.7.0",
+		"@types/node": "^25.1.0",
+		"@typescript/native-preview": "7.0.0-dev.20260130.1",
 		"@vitest/coverage-v8": "^4.0.18",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
 		"markdownlint-cli2": "^0.20.0",
 		"markdownlint-cli2-formatter-codequality": "^0.0.7",
-		"turbo": "^2.7.6",
+		"turbo": "^2.8.1",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.18"
 	},
