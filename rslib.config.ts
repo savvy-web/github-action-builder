@@ -1,16 +1,23 @@
 import { NodeLibraryBuilder } from "@savvy-web/rslib-builder";
 
-const config: ReturnType<typeof NodeLibraryBuilder.create> = NodeLibraryBuilder.create({
+export default NodeLibraryBuilder.create({
 	tsdocLint: true,
-	// Externalize typescript - it uses __filename which doesn't work when bundled in ESM
-	// Also externalize source-map-support which is an optional typescript dependency
-	externals: [],
+	apiModel: {
+		tsdoc: {
+			tagDefinitions: [
+				{ tagName: "@schema", syntaxKind: "modifier" },
+				{ tagName: "@layer", syntaxKind: "modifier" },
+				{ tagName: "@service", syntaxKind: "modifier" },
+				{ tagName: "@error", syntaxKind: "modifier" },
+			],
+		},
+	},
 	transform({ pkg }) {
 		delete pkg.devDependencies;
+		delete pkg.bundleDependencies;
 		delete pkg.scripts;
 		delete pkg.publishConfig;
+		delete pkg.devEngines;
 		return pkg;
 	},
 });
-
-export default config;

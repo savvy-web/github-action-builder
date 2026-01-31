@@ -1,18 +1,156 @@
+/* v8 ignore start - barrel file only re-exports, no logic to test */
 /**
- * \@savvy-web/example-module
+ * GitHub Action Builder
  *
- * Version-aware type definition registry for TypeScript documentation with Twoslash.
- * Built with Effect for robust error handling and composable async operations.
+ * A zero-config build tool for creating GitHub Actions from TypeScript source code.
+ * This package provides both a programmatic API and CLI for bundling TypeScript
+ * GitHub Actions into production-ready JavaScript bundles.
+ *
+ * @remarks
+ * The package uses vercel/ncc under the hood to create single-file bundles
+ * that include all dependencies. It automatically detects entry points
+ * (`main.ts`, `pre.ts`, `post.ts`) and validates `action.yml` configuration.
+ *
+ * @example Programmatic usage with GitHubAction class
+ * ```typescript
+ * import { GitHubAction } from "@savvy-web/github-action-builder";
+ *
+ * async function main(): Promise<void> {
+ *   const action = GitHubAction.create();
+ *   const result = await action.build();
+ *
+ *   if (result.success) {
+ *     console.log("Build completed successfully");
+ *   } else {
+ *     console.error(result.error);
+ *     process.exit(1);
+ *   }
+ * }
+ *
+ * main();
+ * ```
+ *
+ * @example Configuration file (action.config.ts)
+ * ```typescript
+ * import { defineConfig } from "@savvy-web/github-action-builder";
+ *
+ * export default defineConfig({
+ *   entries: {
+ *     main: "src/main.ts",
+ *     post: "src/cleanup.ts",
+ *   },
+ *   build: {
+ *     minify: true,
+ *     target: "es2022",
+ *   },
+ * });
+ * ```
  *
  * @packageDocumentation
  */
 
-export interface Foo {
-	baz: number;
-}
+// =============================================================================
+// Primary API
+// =============================================================================
 
-export class Bar {
-	qux(): Foo {
-		return { baz: 42 };
-	}
-}
+export type { GitHubActionBuildResult, GitHubActionOptions } from "./github-action.js";
+export { GitHubAction, GitHubActionBuildResultSchema } from "./github-action.js";
+
+// =============================================================================
+// Configuration
+// =============================================================================
+
+export type { BuildOptions, Config, ConfigInput, Entries, EsTarget, ValidationOptions } from "./schemas/config.js";
+export {
+	BuildOptionsSchema,
+	ConfigInputSchema,
+	ConfigSchema,
+	EntriesSchema,
+	ValidationOptionsSchema,
+	defineConfig,
+} from "./schemas/config.js";
+
+// =============================================================================
+// Error Types
+// =============================================================================
+
+export type { AppError, BuildError, ConfigError, ValidationError } from "./errors.js";
+export {
+	ActionYmlMissing,
+	ActionYmlMissingBase,
+	ActionYmlSchemaError,
+	ActionYmlSchemaErrorBase,
+	ActionYmlSyntaxError,
+	ActionYmlSyntaxErrorBase,
+	BuildFailed,
+	BuildFailedBase,
+	BundleFailed,
+	BundleFailedBase,
+	CleanError,
+	CleanErrorBase,
+	ConfigInvalid,
+	ConfigInvalidBase,
+	ConfigLoadFailed,
+	ConfigLoadFailedBase,
+	ConfigNotFound,
+	ConfigNotFoundBase,
+	EntryFileMissing,
+	EntryFileMissingBase,
+	MainEntryMissing,
+	MainEntryMissingBase,
+	ValidationFailed,
+	ValidationFailedBase,
+	WriteError,
+	WriteErrorBase,
+} from "./errors.js";
+
+// =============================================================================
+// Build Service Types
+// =============================================================================
+
+export type { BuildResult, BuildRunnerOptions, BundleResult, BundleStats } from "./services/build.js";
+export {
+	BuildResultSchema,
+	BuildRunnerOptionsSchema,
+	BuildService,
+	BundleResultSchema,
+	BundleStatsSchema,
+} from "./services/build.js";
+
+// =============================================================================
+// Config Service Types
+// =============================================================================
+
+export type { DetectEntriesResult, DetectedEntry, LoadConfigOptions, LoadConfigResult } from "./services/config.js";
+export {
+	ConfigService,
+	DetectEntriesResultSchema,
+	DetectedEntrySchema,
+	LoadConfigOptionsSchema,
+} from "./services/config.js";
+
+// =============================================================================
+// Validation Service Types
+// =============================================================================
+
+export type {
+	ActionYmlResult,
+	ValidateOptions,
+	ValidationErrorItem,
+	ValidationResult,
+	ValidationWarning,
+} from "./services/validation.js";
+export {
+	ActionYmlResultSchema,
+	ValidateOptionsSchema,
+	ValidationErrorSchema,
+	ValidationResultSchema,
+	ValidationService,
+	ValidationWarningSchema,
+} from "./services/validation.js";
+
+// =============================================================================
+// Effect Layers
+// =============================================================================
+
+export { AppLayer, BuildLayer, ConfigLayer, ValidationLayer } from "./layers/app.js";
