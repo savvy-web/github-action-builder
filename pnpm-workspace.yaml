@@ -1,12 +1,9 @@
 packages:
   - .
-
 loglevel: info
-
 onlyBuiltDependencies:
-  - '@parcel/watcher'
+  - "@parcel/watcher"
   - core-js
   - esbuild
   - msgpackr-extract
-
 preferFrozenLockfile: true
