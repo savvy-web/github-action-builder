@@ -26,11 +26,11 @@ your configuration at build time.
 
 Configure entry point paths for your action.
 
-| Option | Type     | Default           | Description                          |
-| ------ | -------- | ----------------- | ------------------------------------ |
-| `main` | `string` | `"src/main.ts"`   | Main action entry point (required)   |
-| `pre`  | `string` | `undefined`       | Pre-action hook (runs before main)   |
-| `post` | `string` | `undefined`       | Post-action hook (runs after main)   |
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `main` | `string` | `"src/main.ts"` | Main action entry point (required) |
+| `pre` | `string` | `undefined` | Pre-action hook (runs before main) |
+| `post` | `string` | `undefined` | Post-action hook (runs after main) |
 
 #### Custom Entry Points
 
@@ -73,13 +73,13 @@ The `main` entry point (`src/main.ts` by default) is always required.
 
 Configure how your action is bundled.
 
-| Option      | Type       | Default    | Description                         |
-| ----------- | ---------- | ---------- | ----------------------------------- |
-| `minify`    | `boolean`  | `true`     | Minify output for smaller bundles   |
-| `target`    | `string`   | `"es2022"` | ECMAScript target version           |
-| `sourceMap` | `boolean`  | `false`    | Generate source maps                |
-| `externals` | `string[]` | `[]`       | Packages to exclude from bundle     |
-| `quiet`     | `boolean`  | `false`    | Suppress build output               |
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `minify` | `boolean` | `true` | Minify output for smaller bundles |
+| `target` | `string` | `"es2022"` | ECMAScript target version |
+| `sourceMap` | `boolean` | `false` | Generate source maps |
+| `externals` | `string[]` | `[]` | Packages to exclude from bundle |
+| `quiet` | `boolean` | `false` | Suppress build output |
 
 #### Development Build with Source Maps
 
@@ -186,11 +186,11 @@ build: {
 
 Configure validation behavior.
 
-| Option             | Type      | Default     | Description                            |
-| ------------------ | --------- | ----------- | -------------------------------------- |
-| `requireActionYml` | `boolean` | `true`      | Require action.yml to exist            |
-| `maxBundleSize`    | `string`  | `undefined` | Maximum bundle size (e.g., "5mb")      |
-| `strict`           | `boolean` | `undefined` | Treat warnings as errors               |
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `requireActionYml` | `boolean` | `true` | Require action.yml to exist |
+| `maxBundleSize` | `string` | `undefined` | Maximum bundle size (e.g., "5mb") |
+| `strict` | `boolean` | `undefined` | Treat warnings as errors |
 
 #### Set Bundle Size Limit
 

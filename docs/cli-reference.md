@@ -10,11 +10,11 @@ github-action-builder <command> [options]
 
 Available commands:
 
-| Command    | Description                                          |
-| ---------- | ---------------------------------------------------- |
-| `build`    | Bundle entry points into production-ready JavaScript |
-| `validate` | Check configuration and action.yml without building  |
-| `init`     | Create a new GitHub Action project                   |
+| Command | Description |
+| --- | --- |
+| `build` | Bundle entry points into production-ready JavaScript |
+| `validate` | Check configuration and action.yml without building |
+| `init` | Create a new GitHub Action project |
 
 ## github-action-builder build
 
@@ -28,11 +28,11 @@ github-action-builder build [options]
 
 **Options:**
 
-| Option              | Alias | Description                | Default             |
-| ------------------- | ----- | -------------------------- | ------------------- |
-| `--config <path>`   | `-c`  | Path to configuration file | `action.config.ts`  |
-| `--quiet`           | `-q`  | Suppress non-error output  | `false`             |
-| `--no-validate`     |       | Skip validation step       | `false`             |
+| Option | Alias | Description | Default |
+| --- | --- | --- | --- |
+| `--config <path>` | `-c` | Path to configuration file | `action.config.ts` |
+| `--quiet` | `-q` | Suppress non-error output | `false` |
+| `--no-validate` | | Skip validation step | `false` |
 
 **Examples:**
 
@@ -91,10 +91,10 @@ Build completed successfully!
 
 **Exit Codes:**
 
-| Code | Meaning                                               |
-| ---- | ----------------------------------------------------- |
-| `0`  | Build succeeded                                       |
-| `1`  | Build failed (validation error, bundle error, etc.)   |
+| Code | Meaning |
+| --- | --- |
+| `0` | Build succeeded |
+| `1` | Build failed (validation error, bundle error, etc.) |
 
 ## github-action-builder validate
 
@@ -108,10 +108,10 @@ github-action-builder validate [options]
 
 **Options:**
 
-| Option              | Alias | Description                | Default             |
-| ------------------- | ----- | -------------------------- | ------------------- |
-| `--config <path>`   | `-c`  | Path to configuration file | `action.config.ts`  |
-| `--quiet`           | `-q`  | Suppress non-error output  | `false`             |
+| Option | Alias | Description | Default |
+| --- | --- | --- | --- |
+| `--config <path>` | `-c` | Path to configuration file | `action.config.ts` |
+| `--quiet` | `-q` | Suppress non-error output | `false` |
 
 **Examples:**
 
@@ -181,10 +181,10 @@ Validation failed with 2 errors
 
 **Exit Codes:**
 
-| Code | Meaning             |
-| ---- | ------------------- |
-| `0`  | Validation passed   |
-| `1`  | Validation failed   |
+| Code | Meaning |
+| --- | --- |
+| `0` | Validation passed |
+| `1` | Validation failed |
 
 ## github-action-builder init
 
@@ -198,15 +198,15 @@ github-action-builder init <action-name> [options]
 
 **Arguments:**
 
-| Argument        | Description                                      |
-| --------------- | ------------------------------------------------ |
-| `<action-name>` | Name of the action (also the output directory)   |
+| Argument | Description |
+| --- | --- |
+| `<action-name>` | Name of the action (also the output directory) |
 
 **Options:**
 
-| Option     | Alias | Description                | Default |
-| ---------- | ----- | -------------------------- | ------- |
-| `--force`  | `-f`  | Overwrite existing files   | `false` |
+| Option | Alias | Description | Default |
+| --- | --- | --- | --- |
+| `--force` | `-f` | Overwrite existing files | `false` |
 
 **Examples:**
 
@@ -306,19 +306,19 @@ Next steps:
 
 **Exit Codes:**
 
-| Code | Meaning                                    |
-| ---- | ------------------------------------------ |
-| `0`  | Project created successfully               |
-| `1`  | Directory exists (use `--force`)           |
+| Code | Meaning |
+| --- | --- |
+| `0` | Project created successfully |
+| `1` | Directory exists (use `--force`) |
 
 ## Global Options
 
 These options work with all commands:
 
-| Option      | Description               |
-| ----------- | ------------------------- |
-| `--help`    | Show help for a command   |
-| `--version` | Show version number       |
+| Option | Description |
+| --- | --- |
+| `--help` | Show help for a command |
+| `--version` | Show version number |
 
 **Examples:**
 
@@ -337,10 +337,10 @@ github-action-builder --version
 
 The CLI respects these environment variables:
 
-| Variable              | Effect                                       |
-| --------------------- | -------------------------------------------- |
-| `CI=true`             | Enables strict mode (warnings become errors) |
-| `GITHUB_ACTIONS=true` | Enables strict mode                          |
+| Variable | Effect |
+| --- | --- |
+| `CI=true` | Enables strict mode (warnings become errors) |
+| `GITHUB_ACTIONS=true` | Enables strict mode |
 
 ### CI Detection
 
