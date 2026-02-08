@@ -1,5 +1,11 @@
 # @savvy-web/github-action-builder
 
+## 0.1.1
+
+### Patch Changes
+
+- 870addd: Standardizes dependencies with @savvy-web/pnpm-plugin-silk
+
 ## 0.1.0
 
 ### Minor Changes
