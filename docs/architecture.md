@@ -361,16 +361,16 @@ src/
 
 ## Design Decisions
 
-| Decision               | Rationale                                      |
-| ---------------------- | ---------------------------------------------- |
-| Node.js 24 only        | Modern ESM, latest features, simpler config    |
-| @vercel/ncc            | Industry standard for bundling Node.js actions |
-| Effect-TS              | Type-safe errors, DI, testability              |
-| @effect/schema         | Native Effect integration, better than Zod     |
-| Source maps off        | Smaller bundles, rarely needed                 |
-| TypeScript config only | Full IDE support, ESM native                   |
-| Flat output structure  | Simple, no nested directories                  |
-| CI-aware strict mode   | Fast dev feedback, strict CI gates             |
+| Decision | Rationale |
+| --- | --- |
+| Node.js 24 only | Modern ESM, latest features, simpler config |
+| @vercel/ncc | Industry standard for bundling Node.js actions |
+| Effect-TS | Type-safe errors, DI, testability |
+| @effect/schema | Native Effect integration, better than Zod |
+| Source maps off | Smaller bundles, rarely needed |
+| TypeScript config only | Full IDE support, ESM native |
+| Flat output structure | Simple, no nested directories |
+| CI-aware strict mode | Fast dev feedback, strict CI gates |
 
 ## Extending the Builder
 
