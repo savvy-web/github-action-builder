@@ -61,7 +61,7 @@
 	},
 	"dependencies": {
 		"@effect/cli": "^0.73.1",
-		"@effect/platform": "^0.94.2",
+		"@effect/platform": "^0.94.4",
 		"@effect/platform-node": "^0.104.1",
 		"@effect/printer": "^0.47.0",
 		"@effect/printer-ansi": "^0.47.0",
@@ -74,8 +74,8 @@
 	"devDependencies": {
 		"@changesets/cli": "catalog:silk",
 		"@savvy-web/commitlint": "^0.3.0",
-		"@savvy-web/lint-staged": "^0.3.1",
-		"@savvy-web/rslib-builder": "^0.12.0",
+		"@savvy-web/lint-staged": "^0.3.2",
+		"@savvy-web/rslib-builder": "^0.12.1",
 		"@types/node": "catalog:silk",
 		"@typescript/native-preview": "catalog:silk",
 		"@vitest/coverage-v8": "catalog:silk",
