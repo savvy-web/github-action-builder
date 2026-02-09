@@ -1,5 +1,19 @@
 # @savvy-web/github-action-builder
 
+## 0.1.2
+
+### Patch Changes
+
+- 6e927d4: Update dependencies:
+
+  **Dependencies:**
+
+  - @savvy-web/commitlint: ^0.3.0 → ^0.3.1
+  - @savvy-web/lint-staged: ^0.3.1 → ^0.3.2
+  - @savvy-web/rslib-builder: ^0.12.0 → ^0.12.1
+
+- e9784b1: Specifies TypeScript and Node.js types as peer dependencies for easy installation
+
 ## 0.1.1
 
 ### Patch Changes
