@@ -84,8 +84,6 @@
 		"vitest": "catalog:silk"
 	},
 	"peerDependencies": {
-		"@microsoft/api-extractor": "catalog:silk",
-		"@rslib/core": "catalog:silk",
 		"@types/node": "catalog:silk",
 		"@typescript/native-preview": "catalog:silk",
 		"typescript": "catalog:silk"
