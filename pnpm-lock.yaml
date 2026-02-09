@@ -9,6 +9,12 @@ catalogs:
     '@changesets/cli':
       specifier: ^2.29.8
       version: 2.29.8
+    '@microsoft/api-extractor':
+      specifier: ^7.56.3
+      version: 7.56.3
+    '@rslib/core':
+      specifier: ^0.19.5
+      version: 0.19.5
     '@types/node':
       specifier: ^25.2.1
       version: 25.2.2
@@ -57,6 +63,12 @@ importers:
       '@effect/typeclass':
         specifier: ^0.38.0
         version: 0.38.0(effect@3.19.16)
+      '@microsoft/api-extractor':
+        specifier: catalog:silk
+        version: 7.56.3(@types/node@25.2.2)
+      '@rslib/core':
+        specifier: catalog:silk
+        version: 0.19.5(@microsoft/api-extractor@7.56.3(@types/node@25.2.2))(@typescript/native-preview@7.0.0-dev.20260207.1)(typescript@5.9.3)
       '@vercel/ncc':
         specifier: ^0.38.4
         version: 0.38.4
