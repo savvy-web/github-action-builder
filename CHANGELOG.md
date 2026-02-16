@@ -1,5 +1,23 @@
 # @savvy-web/github-action-builder
 
+## 0.1.3
+
+### Patch Changes
+
+- e410c8a: Update dependencies:
+
+  **Dependencies:**
+  - @savvy-web/rslib-builder: ^0.12.2 → ^0.14.1
+
+- 2af2b96: ## Features
+  - Support for @savvy-web/changesets
+- 289f0a6: Update dependencies:
+
+  **Dependencies:**
+  - @savvy-web/commitlint: ^0.3.1 → ^0.3.2
+  - @savvy-web/lint-staged: ^0.3.2 → ^0.4.0
+  - @savvy-web/rslib-builder: ^0.12.1 → ^0.12.2
+
 ## 0.1.2
 
 ### Patch Changes
@@ -7,7 +25,6 @@
 - 6e927d4: Update dependencies:
 
   **Dependencies:**
-
   - @savvy-web/commitlint: ^0.3.0 → ^0.3.1
   - @savvy-web/lint-staged: ^0.3.1 → ^0.3.2
   - @savvy-web/rslib-builder: ^0.12.0 → ^0.12.1
@@ -38,7 +55,6 @@
   ```
 
   Generates a ready-to-build project with:
-
   - `package.json` with build scripts and dependencies
   - `tsconfig.json` configured for Node.js 24 ESM
   - `action.yml` with GitHub Action metadata
@@ -48,7 +64,6 @@
   ### Modern Node.js 24 Actions
 
   Build ESM-native GitHub Actions for the latest runtime:
-
   - Targets Node.js 24 with ES2022+ features
   - Validates `action.yml` requires `runs.using: "node24"`
   - Outputs flat bundle structure: `dist/main.js`, `dist/pre.js`, `dist/post.js`
@@ -56,7 +71,6 @@
   ### Single-File Bundles with @vercel/ncc
 
   All dependencies inlined into self-contained bundles:
-
   - No `node_modules` required at runtime
   - Minified by default for smaller bundles
   - Supports external packages for native modules
@@ -64,7 +78,6 @@
   ### GitHub Action Schema Validation
 
   Validates `action.yml` against GitHub's official metadata specification:
-
   - Checks required fields (name, description, runs)
   - Validates inputs, outputs, and branding configuration
   - Ensures `runs.using` is set to `node24`
@@ -72,7 +85,6 @@
   ### CI-Aware Strict Mode
 
   Automatically adapts validation behavior:
-
   - **Local development**: Warnings shown, build continues
   - **CI environments**: Warnings become errors, build fails
 
@@ -91,7 +103,6 @@
   ```
 
   ### CLI Commands
-
   - `init <action-name>` - Create a new GitHub Action project
   - `build` - Bundle entry points into production-ready JavaScript
   - `validate` - Check configuration and action.yml without building
