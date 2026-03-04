@@ -263,6 +263,100 @@ validation: {
 }
 ```
 
+### persistLocal
+
+Configure automatic persistence of build output to a local action directory
+for testing with [nektos/act](https://github.com/nektos/act).
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `enabled` | `boolean` | `true` | Enable/disable persisting build output locally |
+| `path` | `string` | `".github/actions/local"` | Output directory relative to project root |
+| `actTemplate` | `boolean` | `true` | Generate act boilerplate files if they don't exist |
+
+#### Default Behavior
+
+With no configuration, `persistLocal` is enabled. After each build, the builder
+copies `action.yml` and `dist/` to `.github/actions/local/` and generates act
+template files (`.actrc` and `.github/workflows/act-test.yml`) if they do not
+already exist.
+
+#### Custom Output Path
+
+```typescript
+import { defineConfig } from "@savvy-web/github-action-builder";
+
+export default defineConfig({
+  persistLocal: {
+    path: ".github/actions/my-action",
+  },
+});
+```
+
+#### Disable Persist Local
+
+```typescript
+import { defineConfig } from "@savvy-web/github-action-builder";
+
+export default defineConfig({
+  persistLocal: {
+    enabled: false,
+  },
+});
+```
+
+#### Persist Local Options Details
+
+##### enabled
+
+When `true` (default), the builder copies `action.yml` and the `dist/`
+directory to the local action path after every successful build. Uses hash-based
+comparison to skip unchanged files and removes stale files from the destination.
+
+Disable to skip local persistence entirely:
+
+```typescript
+persistLocal: {
+  enabled: false,
+}
+```
+
+You can also skip persistence for a single build using the `--no-persist` CLI
+flag without changing your configuration.
+
+##### path
+
+The output directory for the local action, relative to the project root.
+Defaults to `".github/actions/local"`.
+
+The directory is created automatically if it does not exist.
+
+```typescript
+persistLocal: {
+  path: ".github/actions/dev",
+}
+```
+
+##### actTemplate
+
+When `true` (default), the builder generates act boilerplate files if they do
+not already exist:
+
+* `.actrc` - Default act options
+* `.github/workflows/act-test.yml` - Minimal workflow for local testing
+
+Existing files are never overwritten. Set to `false` if you manage these files
+yourself:
+
+```typescript
+persistLocal: {
+  actTemplate: false,
+}
+```
+
+For a detailed guide on local testing with act, see
+[Local Testing](./local-testing.md).
+
 ## Full Configuration Example
 
 ```typescript
@@ -291,6 +385,13 @@ export default GitHubAction.create({
     maxBundleSize: "10mb",
     strict: undefined, // Auto-detect from CI
   },
+
+  // Persist local
+  persistLocal: {
+    enabled: true,
+    path: ".github/actions/local",
+    actTemplate: true,
+  },
 });
 ```
 
@@ -314,6 +415,11 @@ The builder works without any configuration file. These defaults are applied:
   validation: {
     requireActionYml: true,
     strict: undefined, // CI-aware
+  },
+  persistLocal: {
+    enabled: true,
+    path: ".github/actions/local",
+    actTemplate: true,
   },
 }
 ```

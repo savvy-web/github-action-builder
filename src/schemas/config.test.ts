@@ -9,6 +9,7 @@ import {
 	ConfigSchema,
 	EntriesSchema,
 	EsTarget,
+	PersistLocalOptionsSchema,
 	ValidationOptionsSchema,
 	defineConfig,
 } from "./config.js";
@@ -99,6 +100,26 @@ describe("ValidationOptions Schema", () => {
 	});
 });
 
+describe("PersistLocalOptions Schema", () => {
+	it("applies defaults when decoding empty object", () => {
+		const options = Schema.decodeUnknownSync(PersistLocalOptionsSchema)({});
+		expect(options.enabled).toBe(true);
+		expect(options.path).toBe(".github/actions/local");
+		expect(options.actTemplate).toBe(true);
+	});
+
+	it("accepts custom options", () => {
+		const options = Schema.decodeUnknownSync(PersistLocalOptionsSchema)({
+			enabled: false,
+			path: ".github/actions/custom",
+			actTemplate: false,
+		});
+		expect(options.enabled).toBe(false);
+		expect(options.path).toBe(".github/actions/custom");
+		expect(options.actTemplate).toBe(false);
+	});
+});
+
 describe("EsTarget Literal", () => {
 	it("validates correct targets", () => {
 		expect(() => Schema.decodeUnknownSync(EsTarget)("es2020")).not.toThrow();
@@ -149,10 +170,14 @@ describe("Config Schema", () => {
 			entries: {},
 			build: {},
 			validation: {},
+			persistLocal: {},
 		});
 		expect(config.entries.main).toBe("src/main.ts");
 		expect(config.build.minify).toBe(true);
 		expect(config.validation.requireActionYml).toBe(true);
+		expect(config.persistLocal.enabled).toBe(true);
+		expect(config.persistLocal.path).toBe(".github/actions/local");
+		expect(config.persistLocal.actTemplate).toBe(true);
 	});
 });
 
@@ -162,9 +187,13 @@ describe("defineConfig", () => {
 		expect(config.entries).toBeDefined();
 		expect(config.build).toBeDefined();
 		expect(config.validation).toBeDefined();
+		expect(config.persistLocal).toBeDefined();
 		expect(config.entries.main).toBe("src/main.ts");
 		expect(config.build.minify).toBe(true);
 		expect(config.validation.requireActionYml).toBe(true);
+		expect(config.persistLocal.enabled).toBe(true);
+		expect(config.persistLocal.path).toBe(".github/actions/local");
+		expect(config.persistLocal.actTemplate).toBe(true);
 	});
 
 	it("merges partial config with defaults", () => {
@@ -219,5 +248,18 @@ describe("defineConfig", () => {
 		expect(config.validation.requireActionYml).toBe(false);
 		expect(config.validation.maxBundleSize).toBe("10mb");
 		expect(config.validation.strict).toBe(true);
+	});
+
+	it("handles all persistLocal options", () => {
+		const config = defineConfig({
+			persistLocal: {
+				enabled: false,
+				path: ".github/actions/custom",
+				actTemplate: false,
+			},
+		});
+		expect(config.persistLocal.enabled).toBe(false);
+		expect(config.persistLocal.path).toBe(".github/actions/custom");
+		expect(config.persistLocal.actTemplate).toBe(false);
 	});
 });

@@ -15,6 +15,8 @@ import { defineConfig } from "./schemas/config.js";
 import type { BuildRunnerOptions } from "./services/build.js";
 import { BuildResultSchema, BuildService } from "./services/build.js";
 import { ConfigService } from "./services/config.js";
+import type { PersistLocalResult } from "./services/persist-local.js";
+import { PersistLocalResultSchema, PersistLocalService } from "./services/persist-local.js";
 import type { ValidateOptions, ValidationResult } from "./services/validation.js";
 import { ValidationResultSchema, ValidationService } from "./services/validation.js";
 
@@ -72,7 +74,7 @@ export interface GitHubActionOptions {
 	 * @remarks
 	 * Advanced option for testing or customizing service implementations.
 	 */
-	layer?: Layer.Layer<ConfigService | ValidationService | BuildService>;
+	layer?: Layer.Layer<ConfigService | ValidationService | BuildService | PersistLocalService>;
 }
 
 /**
@@ -92,6 +94,8 @@ export const GitHubActionBuildResultSchema = Schema.Struct({
 	build: Schema.optional(BuildResultSchema),
 	/** Validation result if validation was performed. */
 	validation: Schema.optional(ValidationResultSchema),
+	/** Persist-local result if persist was performed. */
+	persistLocal: Schema.optional(PersistLocalResultSchema),
 	/** Error message if the build or validation failed. */
 	error: Schema.optional(Schema.String),
 });
@@ -164,7 +168,10 @@ export class GitHubAction {
 	 * Managed runtime for running Effects.
 	 * @internal
 	 */
-	private readonly runtime: ManagedRuntime.ManagedRuntime<ConfigService | ValidationService | BuildService, never>;
+	private readonly runtime: ManagedRuntime.ManagedRuntime<
+		ConfigService | ValidationService | BuildService | PersistLocalService,
+		never
+	>;
 
 	/**
 	 * Cached configuration after first load.
@@ -367,16 +374,28 @@ export class GitHubAction {
 				};
 			}
 
+			// Persist locally if enabled
+			let persistLocalResult: PersistLocalResult | undefined;
+			if (config.persistLocal.enabled) {
+				const persistProgram = Effect.gen(function* () {
+					const persistLocalService = yield* PersistLocalService;
+					return yield* persistLocalService.persist(config, { cwd });
+				});
+				persistLocalResult = await this.runtime.runPromise(persistProgram);
+			}
+
 			if (validationResult) {
 				return {
 					success: true,
 					build: buildResult,
 					validation: validationResult,
+					persistLocal: persistLocalResult,
 				};
 			}
 			return {
 				success: true,
 				build: buildResult,
+				persistLocal: persistLocalResult,
 			};
 		} catch (error) {
 			return {

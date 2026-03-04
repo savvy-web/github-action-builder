@@ -2,10 +2,10 @@
 title: GitHub Action Builder Architecture
 type: architecture
 status: current
-completeness: 90
+completeness: 95
 created: 2026-01-29
-updated: 2026-01-30
-last-synced: 2026-01-30
+updated: 2026-03-04
+last-synced: 2026-03-04
 authors:
   - C. Spencer Beggs
 tags:
@@ -54,38 +54,41 @@ a repository.
 - Auto-detects entry points: `src/main.ts` (required), `src/pre.ts`, `src/post.ts`
 - Flat output structure: `dist/main.js`, `dist/pre.js`, `dist/post.js`
 - Source maps disabled by default for smaller bundles
+- Auto-persists build output to `.github/actions/local/` for local testing with
+  [nektos/act](https://github.com/nektos/act)
 
 ---
 
 ## Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    Consumer Layer                           │
-├──────────────────────┬──────────────────────────────────────┤
-│   CLI (@effect/cli)  │   GitHubAction Class                 │
-│   - build command    │   - Promise-based wrapper            │
-│   - validate command │   - ManagedRuntime for services      │
-│   - init command     │   - For non-Effect consumers         │
-└──────────────────────┴──────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                   Service Layer (Effect)                    │
-├─────────────────────────────────────────────────────────────┤
-│  ConfigService       │  ValidationService │  BuildService   │
-│  - load()            │  - validate()      │  - build()      │
-│  - resolve()         │  - validateActionYml()│  - bundle()  │
-│  - detectEntries()   │  - formatResult()  │  - clean()      │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                   Foundation Layer                          │
-├─────────────────────────────────────────────────────────────┤
-│  Typed Errors        │  Schemas           │  Layers         │
-│  - ConfigError       │  - @effect/schema  │  - AppLayer     │
-│  - ValidationError   │  - Config schemas  │  - ConfigLayer  │
-│  - BuildError        │  - ActionYml schema│  - BuildLayer   │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Consumer Layer                                  │
+├──────────────────────┬──────────────────────────────────────────────────┤
+│   CLI (@effect/cli)  │   GitHubAction Class                             │
+│   - build command    │   - Promise-based wrapper                        │
+│   - validate command │   - ManagedRuntime for services                  │
+│   - init command     │   - For non-Effect consumers                     │
+└──────────────────────┴──────────────────────────────────────────────────┘
+                                       │
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Service Layer (Effect)                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ConfigService     │ ValidationService │ BuildService │ PersistLocal-  │
+│  - load()          │ - validate()      │ - build()    │   Service      │
+│  - resolve()       │ - validateActionYml│ - bundle()  │ - persist()    │
+│  - detectEntries() │ - formatResult()  │ - clean()    │ - formatResult()│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Foundation Layer                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│  Typed Errors        │  Schemas           │  Layers                     │
+│  - ConfigError       │  - @effect/schema  │  - AppLayer                 │
+│  - ValidationError   │  - Config schemas  │  - ConfigLayer              │
+│  - BuildError        │  - ActionYml schema│  - BuildLayer               │
+│  - PersistError      │                    │  - PersistLocalLayer         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 The architecture follows an Effect-first design where:
@@ -172,6 +175,40 @@ interface BuildService {
 - Writes `dist/package.json` with `{ "type": "module" }`
 - Handles assets from dynamic imports (ncc chunks)
 
+### PersistLocalService (`src/services/persist-local.ts`)
+
+Copies build output to a local action directory for testing with
+[nektos/act](https://github.com/nektos/act).
+
+```typescript
+interface PersistLocalService {
+  // Persist build output to the local action directory
+  readonly persist: (
+    config: Config,
+    options?: PersistLocalRunnerOptions,
+  ) => Effect<PersistLocalResult, PersistLocalError | ActionYmlPathError>
+
+  // Format persist result for display
+  readonly formatResult: (result: PersistLocalResult) => string
+}
+```
+
+**Key behaviors:**
+
+- Smart sync using SHA-256 hash comparison (copies only changed files)
+- Removes stale files from destination not present in source
+- Validates `action.yml` `runs.main/pre/post` paths resolve in destination
+- Generates act boilerplate files (`.actrc`, `.github/workflows/act-test.yml`)
+  only if they do not already exist
+- No service dependencies (standalone layer)
+- Configurable via `persistLocal` config options (`enabled`, `path`,
+  `actTemplate`)
+
+**Architecture decision:** PersistLocalService is a standalone service, not
+embedded in BuildService. This follows the single-responsibility pattern:
+ConfigService loads, ValidationService validates, BuildService bundles,
+PersistLocalService persists.
+
 ### Layer Composition (`src/layers/app.ts`)
 
 ```typescript
@@ -179,9 +216,10 @@ interface BuildService {
 export const ConfigLayer = ConfigServiceLive
 export const ValidationLayer = ValidationServiceLive.pipe(Layer.provide(ConfigServiceLive))
 export const BuildLayer = BuildServiceLive.pipe(Layer.provide(ConfigServiceLive))
+export const PersistLocalLayer = PersistLocalServiceLive // No dependencies
 
 // Combined application layer
-export const AppLayer = Layer.mergeAll(ConfigServiceLive, ValidationLayer, BuildLayer)
+export const AppLayer = Layer.mergeAll(ConfigServiceLive, ValidationLayer, BuildLayer, PersistLocalLayer)
 ```
 
 ---
@@ -213,6 +251,19 @@ const ValidationOptionsSchema = Schema.Struct({
   strict: Schema.optional(Schema.Boolean), // Auto-detects from CI
 })
 ```
+
+### PersistLocal Options Schema (`src/schemas/config.ts`)
+
+```typescript
+const PersistLocalOptionsSchema = Schema.Struct({
+  enabled: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+  path: Schema.optionalWith(Schema.String, { default: () => ".github/actions/local" }),
+  actTemplate: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+})
+```
+
+Added to `ConfigSchema` as `persistLocal: PersistLocalOptionsSchema` and
+available via `defineConfig({ persistLocal: { ... } })`.
 
 ### ActionYml Schema (`src/schemas/action-yml.ts`)
 
@@ -280,6 +331,14 @@ The output structure is **flat** - all files go directly in `dist/`.
 | `externals` | `[]` | No packages excluded from bundle |
 | `quiet` | `false` | Show build output |
 
+### Persist-Local Defaults
+
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `enabled` | `true` | Auto-persist after build |
+| `path` | `".github/actions/local"` | Destination directory |
+| `actTemplate` | `true` | Generate `.actrc` and `act-test.yml` if missing |
+
 ### Zero-Config Example
 
 ```bash
@@ -337,6 +396,13 @@ export default defineConfig({
     maxBundleSize: "5mb",     // Warn if bundle exceeds (optional)
     strict: undefined,        // Auto-detects from CI environment
   },
+
+  // Persist-local options
+  persistLocal: {
+    enabled: true,            // Default: true
+    path: ".github/actions/local", // Default: ".github/actions/local"
+    actTemplate: true,        // Default: true (generate act boilerplate)
+  },
 });
 ```
 
@@ -360,6 +426,7 @@ export function defineConfig(config: Partial<ConfigInput> = {}): Config {
     entries: config.entries ?? {},
     build: config.build ?? {},
     validation: config.validation ?? {},
+    persistLocal: config.persistLocal ?? {},
   });
 }
 ```
@@ -373,15 +440,19 @@ All schemas use `@effect/schema` with `Schema.optionalWith()` for defaults.
 ### Pipeline Stages
 
 ```text
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│  Load    │───▶│ Detect   │───▶│ Validate │───▶│  Build   │
-│  Config  │    │ Entries  │    │          │    │          │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-     │               │               │               │
-     ▼               ▼               ▼               ▼
-  ConfigService  ConfigService  ValidationService  BuildService
-  .load()        .detectEntries()  .validate()     .build()
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Load    │───▶│ Detect   │───▶│ Validate │───▶│  Build   │───▶│ Persist  │
+│  Config  │    │ Entries  │    │          │    │          │    │  Local   │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+     │               │               │               │               │
+     ▼               ▼               ▼               ▼               ▼
+  ConfigService  ConfigService  ValidationService  BuildService  PersistLocal-
+  .load()        .detectEntries()  .validate()     .build()       Service
+                                                                  .persist()
 ```
+
+The persist stage runs automatically after a successful build unless disabled
+via `--no-persist` (CLI) or `persistLocal.enabled: false` (config).
 
 ### BuildService.build() Flow
 
@@ -448,6 +519,11 @@ Build Summary:
 Total time: 1801ms
 
 Build completed successfully!
+
+Persisting to local action directory...
+  ✓ Synced 3 files to .github/actions/local/
+  ✓ Skipped 0 unchanged files
+  ✓ Generated act template files
 ```
 
 ---
@@ -570,6 +646,7 @@ Options:
   -c, --config <path>   Path to config file (default: action.config.ts)
   -q, --quiet           Suppress non-error output
   --no-validate         Skip validation step
+  --no-persist          Skip persisting build output to local action directory
 ```
 
 ### Validate Command Options
@@ -596,11 +673,12 @@ Options:
 CLI commands consume services directly via Effect:
 
 ```typescript
-const buildHandler = ({ config, quiet, noValidate }) =>
+const buildHandler = ({ config, quiet, noValidate, noPersist }) =>
   Effect.gen(function* () {
     const configService = yield* ConfigService;
     const validationService = yield* ValidationService;
     const buildService = yield* BuildService;
+    const persistLocalService = yield* PersistLocalService;
 
     // Load configuration
     const configResult = yield* configService.load(loadOptions);
@@ -615,7 +693,12 @@ const buildHandler = ({ config, quiet, noValidate }) =>
 
     // Build
     const buildResult = yield* buildService.build(configResult.config, { cwd });
-    // ...
+
+    // Persist locally (unless skipped)
+    if (!noPersist && configResult.config.persistLocal.enabled) {
+      const persistResult = yield* persistLocalService.persist(configResult.config, { cwd });
+      // ...
+    }
   });
 ```
 
@@ -658,7 +741,7 @@ interface GitHubActionOptions {
   clean?: boolean;
 
   // Custom Effect Layer (advanced)
-  layer?: Layer<ConfigService | ValidationService | BuildService>;
+  layer?: Layer<ConfigService | ValidationService | BuildService | PersistLocalService>;
 }
 ```
 
@@ -683,13 +766,28 @@ class GitHubAction {
 }
 ```
 
+### GitHubActionBuildResult
+
+```typescript
+const GitHubActionBuildResultSchema = Schema.Struct({
+  success: Schema.Boolean,
+  build: Schema.optional(BuildResultSchema),
+  validation: Schema.optional(ValidationResultSchema),
+  persistLocal: Schema.optional(PersistLocalResultSchema),
+  error: Schema.optional(Schema.String),
+});
+```
+
 ### Internal Architecture
 
 The `GitHubAction` class uses `ManagedRuntime` to execute Effects:
 
 ```typescript
 class GitHubAction {
-  private readonly runtime: ManagedRuntime<ConfigService | ValidationService | BuildService, never>;
+  private readonly runtime: ManagedRuntime<
+    ConfigService | ValidationService | BuildService | PersistLocalService,
+    never
+  >;
 
   private constructor(options: GitHubActionOptions = {}) {
     const layer = options.layer ?? AppLayer;
@@ -698,9 +796,18 @@ class GitHubAction {
   }
 
   async build(): Promise<GitHubActionBuildResult> {
+    // Build, then persist locally if enabled
     const program = Effect.gen(function* () {
       const buildService = yield* BuildService;
-      return yield* buildService.build(config, buildOptions);
+      const buildResult = yield* buildService.build(config, buildOptions);
+
+      // Persist locally if enabled
+      if (config.persistLocal.enabled) {
+        const persistLocalService = yield* PersistLocalService;
+        const persistResult = yield* persistLocalService.persist(config, { cwd });
+        return { buildResult, persistResult };
+      }
+      return { buildResult };
     });
     return this.runtime.runPromise(program);
   }
@@ -720,11 +827,17 @@ export type { Config, ConfigInput, BuildOptions, Entries } from "./schemas/confi
 
 // Services (for Effect consumers)
 export { ConfigService, ValidationService, BuildService } from "./services/...";
-export { AppLayer, ConfigLayer, ValidationLayer, BuildLayer } from "./layers/app.js";
+export { PersistLocalService } from "./services/persist-local.js";
+export { AppLayer, ConfigLayer, ValidationLayer, BuildLayer, PersistLocalLayer } from "./layers/app.js";
+
+// Persist-local types
+export type { PersistLocalResult, PersistLocalRunnerOptions, PersistLocalOptions } from "./services/...";
+export { PersistLocalResultSchema, PersistLocalRunnerOptionsSchema, PersistLocalOptionsSchema } from "./...";
 
 // Errors
-export type { ConfigError, ValidationError, BuildError, AppError } from "./errors.js";
+export type { ConfigError, ValidationError, BuildError, PersistError, AppError } from "./errors.js";
 export { ConfigNotFound, ConfigInvalid, MainEntryMissing, ... } from "./errors.js";
+export { PersistLocalError, ActionYmlPathError } from "./errors.js";
 
 // Schemas (for extending)
 export { ConfigSchema, EntriesSchema, BuildOptionsSchema, ... } from "./schemas/config.js";
@@ -789,6 +902,23 @@ type ValidationError =
 type BuildError = BundleFailed | WriteError | CleanError | BuildFailed;
 ```
 
+**Persist Errors:**
+
+```typescript
+type PersistError = PersistLocalError | ActionYmlPathError;
+
+class PersistLocalError extends Data.TaggedError("PersistLocalError")<{
+  readonly path: string;
+  readonly cause: string;
+}> {}
+
+class ActionYmlPathError extends Data.TaggedError("ActionYmlPathError")<{
+  readonly entryType: string;
+  readonly specifiedPath: string;
+  readonly expectedPath: string;
+}> {}
+```
+
 ### Error Handling Pattern
 
 ```typescript
@@ -818,6 +948,8 @@ Each error carries contextual data:
 | `ActionYmlSchemaError` | `path`, `errors[]` |
 | `BundleFailed` | `entry`, `cause` |
 | `WriteError` | `path`, `cause` |
+| `PersistLocalError` | `path`, `cause` |
+| `ActionYmlPathError` | `entryType`, `specifiedPath`, `expectedPath` |
 
 ---
 
@@ -869,11 +1001,14 @@ Each error carries contextual data:
 - Consistent with modern tooling patterns
 - Avoids CJS/ESM configuration complexity
 
-### Why no local action testing?
+### Why auto-persist for local testing?
 
-- Self-referential action testing is problematic
-- Users should use tools like `act` for local testing
-- Keeps the tool focused on building, not testing
+- Build output is automatically copied to `.github/actions/local/` for use
+  with [nektos/act](https://github.com/nektos/act)
+- Smart sync with SHA-256 hashing avoids unnecessary copies
+- Act boilerplate files (`.actrc`, `act-test.yml`) are generated only once
+- Keeps the tool focused on building while removing friction for local testing
+- Can be disabled via `--no-persist` or `persistLocal.enabled: false`
 
 ### Why no watch mode?
 
@@ -896,7 +1031,7 @@ Resolved questions from initial design:
 | Watch mode | Not included | Can't test actions in real-time |
 | Multiple actions | User responsibility | Programmatic API allows this |
 | Pre-commit hook | Not included | Leave to users/lint-staged |
-| Release directory copy | Removed | Use `act` for local testing |
+| Local action persist | Auto after build | Smart sync to `.github/actions/local/` for `act` |
 | Input validation | User responsibility | Business logic varies per action |
 | action.yml validation | Effect Schema | Validates structure, enforces node24 |
 | CI strictness | Warn local, error CI | Fast dev feedback, strict CI gates |
@@ -924,6 +1059,9 @@ src/
 │   ├── validation-live.ts   # ValidationService implementation
 │   ├── build.ts             # BuildService definition
 │   ├── build-live.ts        # BuildService implementation
+│   ├── persist-local.ts     # PersistLocalService definition
+│   ├── persist-local-live.ts # PersistLocalService implementation
+│   ├── persist-local.test.ts # PersistLocalService tests
 │   └── services.test.ts     # Service tests
 ├── layers/
 │   └── app.ts               # Layer composition (AppLayer)

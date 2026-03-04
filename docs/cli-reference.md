@@ -33,6 +33,7 @@ github-action-builder build [options]
 | `--config <path>` | `-c` | Path to configuration file | `action.config.ts` |
 | `--quiet` | `-q` | Suppress non-error output | `false` |
 | `--no-validate` | | Skip validation step | `false` |
+| `--no-persist` | | Skip persisting build output to local action directory | `false` |
 
 **Examples:**
 
@@ -58,6 +59,12 @@ Build without validation:
 
 ```bash
 github-action-builder build --no-validate
+```
+
+Build without persisting locally:
+
+```bash
+github-action-builder build --no-persist
 ```
 
 **Build Process:**

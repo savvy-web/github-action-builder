@@ -60,12 +60,21 @@ export { GitHubAction, GitHubActionBuildResultSchema } from "./github-action.js"
 // Configuration
 // =============================================================================
 
-export type { BuildOptions, Config, ConfigInput, Entries, EsTarget, ValidationOptions } from "./schemas/config.js";
+export type {
+	BuildOptions,
+	Config,
+	ConfigInput,
+	Entries,
+	EsTarget,
+	PersistLocalOptions,
+	ValidationOptions,
+} from "./schemas/config.js";
 export {
 	BuildOptionsSchema,
 	ConfigInputSchema,
 	ConfigSchema,
 	EntriesSchema,
+	PersistLocalOptionsSchema,
 	ValidationOptionsSchema,
 	defineConfig,
 } from "./schemas/config.js";
@@ -74,10 +83,12 @@ export {
 // Error Types
 // =============================================================================
 
-export type { AppError, BuildError, ConfigError, ValidationError } from "./errors.js";
+export type { AppError, BuildError, ConfigError, PersistError, ValidationError } from "./errors.js";
 export {
 	ActionYmlMissing,
 	ActionYmlMissingBase,
+	ActionYmlPathError,
+	ActionYmlPathErrorBase,
 	ActionYmlSchemaError,
 	ActionYmlSchemaErrorBase,
 	ActionYmlSyntaxError,
@@ -98,6 +109,8 @@ export {
 	EntryFileMissingBase,
 	MainEntryMissing,
 	MainEntryMissingBase,
+	PersistLocalError,
+	PersistLocalErrorBase,
 	ValidationFailed,
 	ValidationFailedBase,
 	WriteError,
@@ -150,7 +163,18 @@ export {
 } from "./services/validation.js";
 
 // =============================================================================
+// Persist Local Service Types
+// =============================================================================
+
+export type { PersistLocalResult, PersistLocalRunnerOptions } from "./services/persist-local.js";
+export {
+	PersistLocalResultSchema,
+	PersistLocalRunnerOptionsSchema,
+	PersistLocalService,
+} from "./services/persist-local.js";
+
+// =============================================================================
 // Effect Layers
 // =============================================================================
 
-export { AppLayer, BuildLayer, ConfigLayer, ValidationLayer } from "./layers/app.js";
+export { AppLayer, BuildLayer, ConfigLayer, PersistLocalLayer, ValidationLayer } from "./layers/app.js";

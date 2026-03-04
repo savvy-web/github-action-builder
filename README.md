@@ -14,6 +14,8 @@ production-ready Node.js 24 actions.
 - **Schema validation** - Validates `action.yml` against GitHub's official
   metadata specification
 - **Single-file bundles** - All dependencies inlined using @vercel/ncc
+- **Local testing** - Auto-persists build output for testing with
+  [nektos/act](https://github.com/nektos/act)
 - **CI-aware** - Strict validation in CI, warnings-only locally
 
 ## Quick Start
@@ -126,6 +128,7 @@ runs:
 
 - [Getting Started](./docs/getting-started.md) - Installation and first build
 - [Configuration](./docs/configuration.md) - All configuration options
+- [Local Testing](./docs/local-testing.md) - Testing with nektos/act
 - [CLI Reference](./docs/cli-reference.md) - Complete command reference
 - [Architecture](./docs/architecture.md) - How it works internally
 - [Troubleshooting](./docs/troubleshooting.md) - Common issues and solutions

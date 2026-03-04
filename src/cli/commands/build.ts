@@ -7,6 +7,7 @@ import { Console, Effect, Option } from "effect";
 
 import { BuildService } from "../../services/build.js";
 import { ConfigService } from "../../services/config.js";
+import { PersistLocalService } from "../../services/persist-local.js";
 import { ValidationService } from "../../services/validation.js";
 
 /**
@@ -36,21 +37,32 @@ export const noValidateOption = Options.boolean("no-validate").pipe(
 );
 
 /**
+ * Skip persist-local option.
+ */
+export const noPersistOption = Options.boolean("no-persist").pipe(
+	Options.withDescription("Skip persisting build output to local action directory"),
+	Options.withDefault(false),
+);
+
+/**
  * Build command handler using Effect services.
  */
 const buildHandler = ({
 	config,
 	quiet,
 	noValidate,
+	noPersist,
 }: {
 	config: Option.Option<string>;
 	quiet: boolean;
 	noValidate: boolean;
+	noPersist: boolean;
 }) =>
 	Effect.gen(function* () {
 		const configService = yield* ConfigService;
 		const validationService = yield* ValidationService;
 		const buildService = yield* BuildService;
+		const persistLocalService = yield* PersistLocalService;
 
 		const cwd = process.cwd();
 
@@ -106,6 +118,19 @@ const buildHandler = ({
 			yield* Console.log(`\n${buildService.formatResult(buildResult)}`);
 			yield* Console.log("\nBuild completed successfully!");
 		}
+
+		// Persist locally (unless skipped)
+		if (!noPersist && configResult.config.persistLocal.enabled) {
+			if (!quiet) {
+				yield* Console.log("\nPersisting to local action directory...");
+			}
+
+			const persistResult = yield* persistLocalService.persist(configResult.config, { cwd });
+
+			if (!quiet && persistResult.success) {
+				yield* Console.log(persistLocalService.formatResult(persistResult));
+			}
+		}
 	});
 
 /**
@@ -117,6 +142,7 @@ export const buildCommand = Command.make(
 		config: configOption,
 		quiet: quietOption,
 		noValidate: noValidateOption,
+		noPersist: noPersistOption,
 	},
 	buildHandler,
 );

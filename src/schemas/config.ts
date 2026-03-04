@@ -117,6 +117,35 @@ export const ValidationOptionsSchema = Schema.Struct({
 export type ValidationOptions = typeof ValidationOptionsSchema.Type;
 
 // =============================================================================
+// Persist Local Options Schema
+// =============================================================================
+
+/**
+ * Schema for persist-local options.
+ *
+ * @remarks
+ * Controls automatic copying of build output to a local action directory
+ * for testing with nektos/act.
+ *
+ * @internal
+ */
+export const PersistLocalOptionsSchema = Schema.Struct({
+	/** Enable persisting build output locally. Defaults to true. */
+	enabled: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+	/** Path for the local action directory, relative to cwd. Defaults to ".github/actions/local". */
+	path: Schema.optionalWith(Schema.String, { default: () => ".github/actions/local" }),
+	/** Generate act boilerplate files (.actrc, act-test.yml) if they don't exist. Defaults to true. */
+	actTemplate: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+});
+
+/**
+ * Persist-local options for copying build output.
+ *
+ * @public
+ */
+export type PersistLocalOptions = typeof PersistLocalOptionsSchema.Type;
+
+// =============================================================================
 // Config Input Schema (User-provided, all optional)
 // =============================================================================
 
@@ -153,6 +182,13 @@ export const ConfigInputSchema = Schema.Struct({
 			strict: Schema.optional(Schema.Boolean),
 		}),
 	),
+	persistLocal: Schema.optional(
+		Schema.Struct({
+			enabled: Schema.optional(Schema.Boolean),
+			path: Schema.optional(Schema.String),
+			actTemplate: Schema.optional(Schema.Boolean),
+		}),
+	),
 });
 
 /**
@@ -179,6 +215,7 @@ export const ConfigSchema = Schema.Struct({
 	entries: EntriesSchema,
 	build: BuildOptionsSchema,
 	validation: ValidationOptionsSchema,
+	persistLocal: PersistLocalOptionsSchema,
 });
 
 /**
@@ -254,5 +291,6 @@ export function defineConfig(config: Partial<ConfigInput> = {}): Config {
 		entries: config.entries ?? {},
 		build: config.build ?? {},
 		validation: config.validation ?? {},
+		persistLocal: config.persistLocal ?? {},
 	});
 }

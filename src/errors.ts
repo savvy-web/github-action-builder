@@ -453,6 +453,80 @@ export class BuildFailed extends BuildFailedBase<{
 export type BuildError = BundleFailed | WriteError | CleanError | BuildFailed;
 
 // =============================================================================
+// Persist Local Errors
+// =============================================================================
+
+/**
+ * Base class for PersistLocalError error.
+ *
+ * @privateRemarks
+ * This export is required for api-extractor documentation generation.
+ * Effect's Data.TaggedError creates an anonymous base class that must be
+ * explicitly exported to avoid "forgotten export" warnings. Do not delete.
+ *
+ * @internal
+ */
+export const PersistLocalErrorBase = Data.TaggedError("PersistLocalError");
+
+/**
+ * Error when persisting build output to local action directory fails.
+ *
+ * @public
+ */
+export class PersistLocalError extends PersistLocalErrorBase<{
+	/**
+	 * The path involved in the failure.
+	 */
+	readonly path: string;
+
+	/**
+	 * The underlying error message.
+	 */
+	readonly cause: string;
+}> {}
+
+/**
+ * Base class for ActionYmlPathError error.
+ *
+ * @privateRemarks
+ * This export is required for api-extractor documentation generation.
+ * Effect's Data.TaggedError creates an anonymous base class that must be
+ * explicitly exported to avoid "forgotten export" warnings. Do not delete.
+ *
+ * @internal
+ */
+export const ActionYmlPathErrorBase = Data.TaggedError("ActionYmlPathError");
+
+/**
+ * Error when action.yml runs paths don't resolve correctly in destination.
+ *
+ * @public
+ */
+export class ActionYmlPathError extends ActionYmlPathErrorBase<{
+	/**
+	 * The entry type whose path failed validation (main, pre, post).
+	 */
+	readonly entryType: string;
+
+	/**
+	 * The path specified in action.yml.
+	 */
+	readonly specifiedPath: string;
+
+	/**
+	 * The expected resolved path.
+	 */
+	readonly expectedPath: string;
+}> {}
+
+/**
+ * Union of all persist-local-related errors.
+ *
+ * @public
+ */
+export type PersistError = PersistLocalError | ActionYmlPathError;
+
+// =============================================================================
 // Combined Error Type
 // =============================================================================
 
@@ -461,4 +535,4 @@ export type BuildError = BundleFailed | WriteError | CleanError | BuildFailed;
  *
  * @public
  */
-export type AppError = ConfigError | ValidationError | BuildError;
+export type AppError = ConfigError | ValidationError | BuildError | PersistError;
