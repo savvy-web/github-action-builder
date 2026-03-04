@@ -10,6 +10,7 @@ import { Layer } from "effect";
 
 import { BuildServiceLive } from "../services/build-live.js";
 import { ConfigServiceLive } from "../services/config-live.js";
+import { PersistLocalServiceLive } from "../services/persist-local-live.js";
 import { ValidationServiceLive } from "../services/validation-live.js";
 
 /**
@@ -43,10 +44,21 @@ export const ValidationLayer = ValidationServiceLive.pipe(Layer.provide(ConfigSe
 export const BuildLayer = BuildServiceLive.pipe(Layer.provide(ConfigServiceLive));
 
 /**
+ * Layer providing PersistLocalService (no dependencies).
+ *
+ * @remarks
+ * Use this layer when you only need persist-local functionality.
+ *
+ * @public
+ */
+export const PersistLocalLayer = PersistLocalServiceLive;
+
+/**
  * Combined layer providing all services.
  *
  * @remarks
- * This layer composes ConfigService, ValidationService, and BuildService.
+ * This layer composes ConfigService, ValidationService, BuildService,
+ * and PersistLocalService.
  * Use this when you need access to all services in your Effect program.
  *
  * @example Using AppLayer with Effect
@@ -69,4 +81,4 @@ export const BuildLayer = BuildServiceLive.pipe(Layer.provide(ConfigServiceLive)
  *
  * @public
  */
-export const AppLayer = Layer.mergeAll(ConfigServiceLive, ValidationLayer, BuildLayer);
+export const AppLayer = Layer.mergeAll(ConfigServiceLive, ValidationLayer, BuildLayer, PersistLocalLayer);
