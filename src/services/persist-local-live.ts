@@ -215,6 +215,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 			// Ensure output directory exists
 			yield* Effect.try({
 				try: () => mkdirSync(outputPath, { recursive: true }),
+				/* v8 ignore next 5 - error branch requires fs permission failures */
 				catch: (error) =>
 					new PersistLocalError({
 						path: outputPath,
@@ -230,6 +231,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 			if (existsSync(actionYmlSrc)) {
 				const copied = yield* Effect.try({
 					try: () => syncFile(actionYmlSrc, resolve(outputPath, "action.yml")),
+					/* v8 ignore next 5 - error branch requires fs permission failures */
 					catch: (error) =>
 						new PersistLocalError({
 							path: actionYmlSrc,
@@ -248,6 +250,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 			if (existsSync(distSrc) && statSync(distSrc).isDirectory()) {
 				const distStats = yield* Effect.try({
 					try: () => syncDirectory(distSrc, resolve(outputPath, "dist")),
+					/* v8 ignore next 5 - error branch requires fs permission failures */
 					catch: (error) =>
 						new PersistLocalError({
 							path: distSrc,
@@ -271,6 +274,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 				if (!existsSync(actrcPath)) {
 					yield* Effect.try({
 						try: () => writeFileSync(actrcPath, ACTRC_CONTENT, "utf8"),
+						/* v8 ignore next 5 - error branch requires fs permission failures */
 						catch: (error) =>
 							new PersistLocalError({
 								path: actrcPath,
@@ -286,6 +290,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 							mkdirSync(dirname(actWorkflowPath), { recursive: true });
 							writeFileSync(actWorkflowPath, ACT_WORKFLOW_CONTENT, "utf8");
 						},
+						/* v8 ignore next 5 - error branch requires fs permission failures */
 						catch: (error) =>
 							new PersistLocalError({
 								path: actWorkflowPath,

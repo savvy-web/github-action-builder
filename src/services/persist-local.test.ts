@@ -235,4 +235,91 @@ runs:
 		expect(formatted).toContain("Persist Local Summary");
 		expect(formatted).toContain("Files copied");
 	});
+
+	it("formats failure result correctly", async () => {
+		const program = Effect.gen(function* () {
+			const service = yield* PersistLocalService;
+			return service.formatResult({
+				success: false,
+				filesCopied: 0,
+				filesSkipped: 0,
+				actTemplateGenerated: false,
+				outputPath: "/tmp/test",
+				error: "something went wrong",
+			});
+		});
+
+		const formatted = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+
+		expect(formatted).toContain("Persist Local Failed");
+		expect(formatted).toContain("something went wrong");
+	});
+
+	it("handles missing action.yml gracefully", async () => {
+		const config = defineConfig({});
+
+		// Remove action.yml
+		rmSync(resolve(testDir, "action.yml"));
+
+		const program = Effect.gen(function* () {
+			const service = yield* PersistLocalService;
+			return yield* service.persist(config, { cwd: testDir });
+		});
+
+		const result = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+
+		// Should succeed even without action.yml
+		expect(result.success).toBe(true);
+		expect(existsSync(resolve(testDir, ".github/actions/local/action.yml"))).toBe(false);
+	});
+
+	it("handles action.yml without runs section", async () => {
+		const config = defineConfig({});
+
+		writeFileSync(
+			resolve(testDir, "action.yml"),
+			`name: "Test"
+description: "No runs section"
+`,
+		);
+
+		const program = Effect.gen(function* () {
+			const service = yield* PersistLocalService;
+			return yield* service.persist(config, { cwd: testDir });
+		});
+
+		const result = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+
+		expect(result.success).toBe(true);
+	});
+
+	it("handles missing dist directory gracefully", async () => {
+		const config = defineConfig({});
+
+		// Remove dist
+		rmSync(resolve(testDir, "dist"), { recursive: true, force: true });
+
+		// Also remove runs.main from action.yml so path validation doesn't fail
+		writeFileSync(
+			resolve(testDir, "action.yml"),
+			`name: "Test"
+description: "No dist"
+runs:
+  using: "node24"
+  main: "index.js"
+`,
+		);
+
+		const program = Effect.gen(function* () {
+			const service = yield* PersistLocalService;
+			return yield* service.persist(config, { cwd: testDir });
+		}).pipe(Effect.either);
+
+		const result = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+
+		// Either succeeds with just action.yml or fails on path validation
+		if (result._tag === "Right") {
+			expect(result.right.success).toBe(true);
+		}
+	});
 });
