@@ -273,6 +273,26 @@ runs:
 		expect(existsSync(resolve(testDir, ".github/actions/local/action.yml"))).toBe(false);
 	});
 
+	it("removes stale destination action.yml when source is deleted", async () => {
+		const config = defineConfig({});
+		const outputPath = resolve(testDir, ".github/actions/local");
+
+		// First run — copies action.yml
+		const program = Effect.gen(function* () {
+			const service = yield* PersistLocalService;
+			return yield* service.persist(config, { cwd: testDir });
+		});
+		await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+		expect(existsSync(resolve(outputPath, "action.yml"))).toBe(true);
+
+		// Delete source action.yml
+		rmSync(resolve(testDir, "action.yml"));
+
+		// Second run — should remove stale dest action.yml
+		await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
+		expect(existsSync(resolve(outputPath, "action.yml"))).toBe(false);
+	});
+
 	it("handles action.yml without runs section", async () => {
 		const config = defineConfig({});
 
@@ -299,27 +319,23 @@ description: "No runs section"
 		// Remove dist
 		rmSync(resolve(testDir, "dist"), { recursive: true, force: true });
 
-		// Also remove runs.main from action.yml so path validation doesn't fail
+		// Omit runs section so path validation has nothing to check
 		writeFileSync(
 			resolve(testDir, "action.yml"),
 			`name: "Test"
 description: "No dist"
-runs:
-  using: "node24"
-  main: "index.js"
 `,
 		);
 
 		const program = Effect.gen(function* () {
 			const service = yield* PersistLocalService;
 			return yield* service.persist(config, { cwd: testDir });
-		}).pipe(Effect.either);
+		});
 
 		const result = await Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
 
-		// Either succeeds with just action.yml or fails on path validation
-		if (result._tag === "Right") {
-			expect(result.right.success).toBe(true);
-		}
+		expect(result.success).toBe(true);
+		// Only action.yml was copied, no dist files
+		expect(result.filesCopied).toBe(1);
 	});
 });

@@ -228,9 +228,10 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 
 			// Sync action.yml
 			const actionYmlSrc = resolve(cwd, "action.yml");
+			const actionYmlDest = resolve(outputPath, "action.yml");
 			if (existsSync(actionYmlSrc)) {
 				const copied = yield* Effect.try({
-					try: () => syncFile(actionYmlSrc, resolve(outputPath, "action.yml")),
+					try: () => syncFile(actionYmlSrc, actionYmlDest),
 					/* v8 ignore next 5 - error branch requires fs permission failures */
 					catch: (error) =>
 						new PersistLocalError({
@@ -243,6 +244,9 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 				} else {
 					totalSkipped++;
 				}
+			} else if (existsSync(actionYmlDest)) {
+				// Remove stale destination action.yml if source was deleted
+				rmSync(actionYmlDest, { force: true });
 			}
 
 			// Sync dist/ directory
