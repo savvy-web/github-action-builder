@@ -1,5 +1,14 @@
 # @savvy-web/github-action-builder
 
+## 0.2.0
+
+### Features
+
+* [`c9947b0`](https://github.com/savvy-web/github-action-builder/commit/c9947b08e7c3559b1cfc150dda3c0af995dabafa) Add `persistLocal` feature to automatically copy build output to `.github/actions/local/` for local testing with nektos/act
+* Smart sync with hash-based comparison, stale file cleanup, and action.yml path validation
+* Act template generation (`.actrc`, `act-test.yml`) for quick setup
+* New `--no-persist` CLI flag to skip persist step
+
 ## 0.1.4
 
 ### Bug Fixes
