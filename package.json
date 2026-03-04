@@ -67,15 +67,15 @@
 		"@effect/printer-ansi": "^0.47.0",
 		"@effect/typeclass": "^0.38.0",
 		"@vercel/ncc": "^0.38.4",
-		"effect": "^3.19.15",
+		"effect": "^3.19.19",
 		"picocolors": "^1.1.1",
 		"yaml": "^2.8.2"
 	},
 	"devDependencies": {
-		"@savvy-web/changesets": "^0.1.1",
-		"@savvy-web/commitlint": "^0.3.3",
-		"@savvy-web/lint-staged": "^0.4.5",
-		"@savvy-web/rslib-builder": "^0.14.4",
+		"@savvy-web/changesets": "^0.3.0",
+		"@savvy-web/commitlint": "^0.3.4",
+		"@savvy-web/lint-staged": "^0.4.6",
+		"@savvy-web/rslib-builder": "^0.15.0",
 		"@savvy-web/vitest": "^0.1.0"
 	},
 	"peerDependencies": {
