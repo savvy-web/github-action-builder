@@ -1,5 +1,15 @@
 # @savvy-web/github-action-builder
 
+## 0.2.1
+
+### Dependencies
+
+* [`d9d434e`](https://github.com/savvy-web/github-action-builder/commit/d9d434eaa1d104d02b3dfe517138463efceb8219) @savvy-web/changesets: ^0.3.0 → ^0.4.1
+* @savvy-web/commitlint: ^0.3.4 → ^0.4.0
+* @savvy-web/lint-staged: ^0.4.6 → ^0.5.0
+* @savvy-web/rslib-builder: ^0.15.0 → ^0.16.0
+* @savvy-web/vitest: ^0.1.0 → ^0.2.0
+
 ## 0.2.0
 
 ### Features
