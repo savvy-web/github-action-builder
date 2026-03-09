@@ -342,7 +342,6 @@ export class GitHubAction {
 						success: false,
 						validation: validationResult,
 						error: "Validation failed",
-						cause: validationResult,
 					};
 				}
 			}
@@ -368,14 +367,12 @@ export class GitHubAction {
 						build: buildResult,
 						validation: validationResult,
 						error: buildResult.error ?? "Build failed",
-						cause: buildResult,
 					};
 				}
 				return {
 					success: false,
 					build: buildResult,
 					error: buildResult.error ?? "Build failed",
-					cause: buildResult,
 				};
 			}
 

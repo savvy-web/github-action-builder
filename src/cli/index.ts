@@ -32,12 +32,20 @@ const CliLayer = Layer.merge(AppLayer, NodeContext.layer);
 
 /**
  * Run the CLI with full error cause rendering.
+ *
+ * Expected typed errors (ValidationFailed, BuildFailed, etc.) are already
+ * printed by command handlers — they just need to exit with failure.
+ * Unexpected defects get full Cause.pretty rendering with stack traces.
  */
 const main = Effect.suspend(() => cli(process.argv)).pipe(
 	Effect.provide(CliLayer),
-	Effect.sandbox,
-	Effect.catchAll((cause) => Console.error(Cause.pretty(cause)).pipe(Effect.andThen(Effect.fail(cause)))),
-	Effect.unsandbox,
+	Effect.catchAllCause((cause) => {
+		const defects = Cause.defects(cause);
+		if (defects.length > 0) {
+			return Console.error(Cause.pretty(cause)).pipe(Effect.andThen(Effect.failCause(cause)));
+		}
+		return Effect.failCause(cause);
+	}),
 );
 
 NodeRuntime.runMain(main);

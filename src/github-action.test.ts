@@ -75,15 +75,16 @@ runs:
 	});
 
 	describe("build error reporting", () => {
-		it("includes cause when build fails", async () => {
-			// Create project with missing main entry to trigger config error
+		it("returns structured validation result without cause on expected failure", async () => {
 			rmSync(resolve(testDir, "src/main.ts"));
 			const action = GitHubAction.create({ cwd: testDir });
 			const result = await action.build();
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBeDefined();
-			expect(result.cause).toBeDefined();
+			expect(result.validation).toBeDefined();
+			// cause is only populated for unexpected thrown errors, not structured failures
+			expect(result.cause).toBeUndefined();
 		});
 	});
 
