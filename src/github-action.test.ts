@@ -74,6 +74,19 @@ runs:
 		});
 	});
 
+	describe("build error reporting", () => {
+		it("includes cause when build fails", async () => {
+			// Create project with missing main entry to trigger config error
+			rmSync(resolve(testDir, "src/main.ts"));
+			const action = GitHubAction.create({ cwd: testDir });
+			const result = await action.build();
+
+			expect(result.success).toBe(false);
+			expect(result.error).toBeDefined();
+			expect(result.cause).toBeDefined();
+		});
+	});
+
 	describe("validate", () => {
 		it("validates successfully with valid setup", async () => {
 			const action = GitHubAction.create({ cwd: testDir });

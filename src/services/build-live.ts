@@ -148,7 +148,7 @@ function cleanDirectory(dir: string): Effect.Effect<void, CleanError> {
 		catch: (error) =>
 			new CleanError({
 				directory: dir,
-				cause: error instanceof Error ? error.message : String(error),
+				cause: error,
 			}),
 	});
 }
@@ -167,7 +167,7 @@ function writeFile(path: string, content: string): Effect.Effect<void, WriteErro
 		catch: (error) =>
 			new WriteError({
 				path,
-				cause: error instanceof Error ? error.message : String(error),
+				cause: error,
 			}),
 	});
 }
@@ -197,7 +197,7 @@ function bundleEntry(
 			catch: (error) =>
 				new BundleFailed({
 					entry: entry.path,
-					cause: error instanceof Error ? error.message : String(error),
+					cause: error,
 				}),
 		});
 
@@ -279,9 +279,10 @@ export const BuildServiceLive = Layer.effect(
 					for (const entry of entriesResult.entries) {
 						const result = yield* Effect.either(bundleEntry(entry, config, cwd));
 						if (result._tag === "Left") {
+							const err = result.left;
 							entryResults.push({
 								success: false,
-								error: result.left.cause,
+								error: err.cause instanceof Error ? err.cause.message : String(err.cause),
 							});
 						} else {
 							entryResults.push(result.right);

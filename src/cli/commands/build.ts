@@ -5,6 +5,7 @@
 import { Command, Options } from "@effect/cli";
 import { Console, Effect, Option } from "effect";
 
+import { BuildFailed, ValidationFailed } from "../../errors.js";
 import { BuildService } from "../../services/build.js";
 import { ConfigService } from "../../services/config.js";
 import { PersistLocalService } from "../../services/persist-local.js";
@@ -92,7 +93,11 @@ const buildHandler = ({
 
 			if (!validationResult.valid) {
 				yield* Console.error(`\n${validationService.formatResult(validationResult)}`);
-				return yield* Effect.fail(new Error("Validation failed"));
+				return yield* new ValidationFailed({
+					errorCount: validationResult.errors.length,
+					warningCount: validationResult.warnings.length,
+					message: "Validation failed",
+				});
 			}
 
 			if (!quiet && validationResult.warnings.length > 0) {
@@ -111,7 +116,10 @@ const buildHandler = ({
 
 		if (!buildResult.success) {
 			yield* Console.error(`\nBuild failed: ${buildResult.error}`);
-			return yield* Effect.fail(new Error("Build failed"));
+			return yield* new BuildFailed({
+				message: buildResult.error ?? "One or more entries failed to build",
+				failedEntries: buildResult.entries.filter((e) => !e.success).length,
+			});
 		}
 
 		if (!quiet) {

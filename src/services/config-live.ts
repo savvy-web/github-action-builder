@@ -100,7 +100,7 @@ export const ConfigServiceLive = Layer.succeed(ConfigService, {
 				catch: (error) =>
 					new ConfigLoadFailed({
 						path: configPath,
-						cause: error instanceof Error ? error.message : String(error),
+						cause: error,
 					}),
 			});
 			/* v8 ignore stop */

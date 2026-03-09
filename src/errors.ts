@@ -109,9 +109,9 @@ export class ConfigLoadFailed extends ConfigLoadFailedBase<{
 	readonly path: string;
 
 	/**
-	 * The underlying error message.
+	 * The underlying error or error message.
 	 */
-	readonly cause: string;
+	readonly cause: unknown;
 }> {}
 
 /**
@@ -353,9 +353,9 @@ export class BundleFailed extends BundleFailedBase<{
 	readonly entry: string;
 
 	/**
-	 * The underlying error message.
+	 * The underlying error or error message.
 	 */
-	readonly cause: string;
+	readonly cause: unknown;
 }> {}
 
 /**
@@ -382,9 +382,9 @@ export class WriteError extends WriteErrorBase<{
 	readonly path: string;
 
 	/**
-	 * The underlying error message.
+	 * The underlying error or error message.
 	 */
-	readonly cause: string;
+	readonly cause: unknown;
 }> {}
 
 /**
@@ -411,9 +411,9 @@ export class CleanError extends CleanErrorBase<{
 	readonly directory: string;
 
 	/**
-	 * The underlying error message.
+	 * The underlying error or error message.
 	 */
-	readonly cause: string;
+	readonly cause: unknown;
 }> {}
 
 /**
@@ -480,9 +480,9 @@ export class PersistLocalError extends PersistLocalErrorBase<{
 	readonly path: string;
 
 	/**
-	 * The underlying error message.
+	 * The underlying error or error message.
 	 */
-	readonly cause: string;
+	readonly cause: unknown;
 }> {}
 
 /**

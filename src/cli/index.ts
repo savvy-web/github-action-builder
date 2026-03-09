@@ -5,7 +5,7 @@
  */
 import { Command } from "@effect/cli";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
-import { Effect, Layer } from "effect";
+import { Cause, Console, Effect, Layer } from "effect";
 
 import { AppLayer } from "../layers/app.js";
 import { buildCommand, initCommand, validateCommand } from "./commands/index.js";
@@ -31,8 +31,13 @@ const cli = Command.run(rootCommand, {
 const CliLayer = Layer.merge(AppLayer, NodeContext.layer);
 
 /**
- * Run the CLI.
+ * Run the CLI with full error cause rendering.
  */
-const main = Effect.suspend(() => cli(process.argv)).pipe(Effect.provide(CliLayer));
+const main = Effect.suspend(() => cli(process.argv)).pipe(
+	Effect.provide(CliLayer),
+	Effect.sandbox,
+	Effect.catchAll((cause) => Console.error(Cause.pretty(cause)).pipe(Effect.andThen(Effect.fail(cause)))),
+	Effect.unsandbox,
+);
 
 NodeRuntime.runMain(main);

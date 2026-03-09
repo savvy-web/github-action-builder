@@ -98,6 +98,8 @@ export const GitHubActionBuildResultSchema = Schema.Struct({
 	persistLocal: Schema.optional(PersistLocalResultSchema),
 	/** Error message if the build or validation failed. */
 	error: Schema.optional(Schema.String),
+	/** Raw error object for programmatic inspection. */
+	cause: Schema.optional(Schema.Unknown),
 });
 
 /**
@@ -340,6 +342,7 @@ export class GitHubAction {
 						success: false,
 						validation: validationResult,
 						error: "Validation failed",
+						cause: validationResult,
 					};
 				}
 			}
@@ -365,12 +368,14 @@ export class GitHubAction {
 						build: buildResult,
 						validation: validationResult,
 						error: buildResult.error ?? "Build failed",
+						cause: buildResult,
 					};
 				}
 				return {
 					success: false,
 					build: buildResult,
 					error: buildResult.error ?? "Build failed",
+					cause: buildResult,
 				};
 			}
 
@@ -401,6 +406,7 @@ export class GitHubAction {
 			return {
 				success: false,
 				error: error instanceof Error ? error.message : "Unknown error",
+				cause: error,
 			};
 		}
 	}
