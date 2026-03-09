@@ -1,5 +1,19 @@
 # @savvy-web/github-action-builder
 
+## 0.3.0
+
+### Features
+
+* [`5820156`](https://github.com/savvy-web/github-action-builder/commit/58201563df086a3deaaf3640e01fe4cc2c632b97) ### Preserve error stack traces with Effect Cause integration
+
+Widen cause field from string to unknown on 5 error classes
+(ConfigLoadFailed, BundleFailed, WriteError, CleanError,
+PersistLocalError) to preserve original Error objects with stack traces.
+
+Service layers now pass raw errors instead of extracting .message.
+CLI renders full error chains via Effect.sandbox + Cause.pretty.
+Programmatic API exposes cause field on GitHubActionBuildResult.
+
 ## 0.2.1
 
 ### Dependencies
