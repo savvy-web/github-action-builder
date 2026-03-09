@@ -74,6 +74,20 @@ runs:
 		});
 	});
 
+	describe("build error reporting", () => {
+		it("returns structured validation result without cause on expected failure", async () => {
+			rmSync(resolve(testDir, "src/main.ts"));
+			const action = GitHubAction.create({ cwd: testDir });
+			const result = await action.build();
+
+			expect(result.success).toBe(false);
+			expect(result.error).toBeDefined();
+			expect(result.validation).toBeDefined();
+			// cause is only populated for unexpected thrown errors, not structured failures
+			expect(result.cause).toBeUndefined();
+		});
+	});
+
 	describe("validate", () => {
 		it("validates successfully with valid setup", async () => {
 			const action = GitHubAction.create({ cwd: testDir });

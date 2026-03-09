@@ -14,6 +14,7 @@ import {
 	ConfigNotFound,
 	EntryFileMissing,
 	MainEntryMissing,
+	PersistLocalError,
 	ValidationFailed,
 	WriteError,
 } from "./errors.js";
@@ -54,6 +55,13 @@ describe("Config Errors", () => {
 		it("stores cause", () => {
 			const error = new ConfigLoadFailed({ path: "/config.ts", cause: "Syntax error" });
 			expect(error.cause).toBe("Syntax error");
+		});
+
+		it("preserves Error object as cause", () => {
+			const original = new Error("Import failed");
+			const error = new ConfigLoadFailed({ path: "/config.ts", cause: original });
+			expect(error.cause).toBe(original);
+			expect((error.cause as Error).stack).toBeDefined();
 		});
 	});
 });
@@ -155,6 +163,13 @@ describe("Build Errors", () => {
 			expect(error.entry).toBe("src/main.ts");
 			expect(error.cause).toBe("Import resolution failed");
 		});
+
+		it("preserves Error object as cause", () => {
+			const original = new Error("ncc compilation error");
+			const error = new BundleFailed({ entry: "src/main.ts", cause: original });
+			expect(error.cause).toBe(original);
+			expect((error.cause as Error).stack).toBeDefined();
+		});
 	});
 
 	describe("WriteError", () => {
@@ -162,12 +177,26 @@ describe("Build Errors", () => {
 			const error = new WriteError({ path: "/dist/main.js", cause: "Permission denied" });
 			expect(error._tag).toBe("WriteError");
 		});
+
+		it("preserves Error object as cause", () => {
+			const original = new Error("EACCES: permission denied");
+			const error = new WriteError({ path: "/dist/main.js", cause: original });
+			expect(error.cause).toBe(original);
+			expect((error.cause as Error).stack).toBeDefined();
+		});
 	});
 
 	describe("CleanError", () => {
 		it("has correct _tag", () => {
 			const error = new CleanError({ directory: "/dist", cause: "Cannot remove" });
 			expect(error._tag).toBe("CleanError");
+		});
+
+		it("preserves Error object as cause", () => {
+			const original = new Error("EPERM: operation not permitted");
+			const error = new CleanError({ directory: "/dist", cause: original });
+			expect(error.cause).toBe(original);
+			expect((error.cause as Error).stack).toBeDefined();
 		});
 	});
 
@@ -180,6 +209,22 @@ describe("Build Errors", () => {
 		it("stores failed entries count", () => {
 			const error = new BuildFailed({ message: "Build failed", failedEntries: 3 });
 			expect(error.failedEntries).toBe(3);
+		});
+	});
+});
+
+describe("Persist Errors", () => {
+	describe("PersistLocalError", () => {
+		it("has correct _tag", () => {
+			const error = new PersistLocalError({ path: "/output", cause: "Failed" });
+			expect(error._tag).toBe("PersistLocalError");
+		});
+
+		it("preserves Error object as cause", () => {
+			const original = new Error("ENOSPC: no space left");
+			const error = new PersistLocalError({ path: "/output", cause: original });
+			expect(error.cause).toBe(original);
+			expect((error.cause as Error).stack).toBeDefined();
 		});
 	});
 });

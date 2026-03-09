@@ -219,7 +219,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 				catch: (error) =>
 					new PersistLocalError({
 						path: outputPath,
-						cause: error instanceof Error ? error.message : String(error),
+						cause: error,
 					}),
 			});
 
@@ -236,7 +236,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 					catch: (error) =>
 						new PersistLocalError({
 							path: actionYmlSrc,
-							cause: error instanceof Error ? error.message : String(error),
+							cause: error,
 						}),
 				});
 				if (copied) {
@@ -258,7 +258,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 					catch: (error) =>
 						new PersistLocalError({
 							path: distSrc,
-							cause: error instanceof Error ? error.message : String(error),
+							cause: error,
 						}),
 				});
 				totalCopied += distStats.copied;
@@ -282,7 +282,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 						catch: (error) =>
 							new PersistLocalError({
 								path: actrcPath,
-								cause: error instanceof Error ? error.message : String(error),
+								cause: error,
 							}),
 					});
 					actTemplateGenerated = true;
@@ -298,7 +298,7 @@ export const PersistLocalServiceLive = Layer.succeed(PersistLocalService, {
 						catch: (error) =>
 							new PersistLocalError({
 								path: actWorkflowPath,
-								cause: error instanceof Error ? error.message : String(error),
+								cause: error,
 							}),
 					});
 					actTemplateGenerated = true;
