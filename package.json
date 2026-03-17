@@ -60,16 +60,16 @@
 		"types:check": "tsgo --noEmit"
 	},
 	"dependencies": {
-		"@effect/cli": "^0.73.1",
-		"@effect/platform": "^0.94.2",
-		"@effect/platform-node": "^0.104.1",
-		"@effect/printer": "^0.47.0",
-		"@effect/printer-ansi": "^0.47.0",
-		"@effect/typeclass": "^0.38.0",
+		"@effect/cli": "catalog:silk",
+		"@effect/platform": "catalog:silk",
+		"@effect/platform-node": "catalog:silk",
+		"@effect/printer": "catalog:silk",
+		"@effect/printer-ansi": "catalog:silk",
+		"@effect/typeclass": "catalog:silk",
 		"@vercel/ncc": "^0.38.4",
-		"effect": "^3.19.19",
+		"effect": "catalog:silk",
 		"picocolors": "^1.1.1",
-		"yaml": "^2.8.2"
+		"yaml-effect": "^0.1.5"
 	},
 	"devDependencies": {
 		"@savvy-web/changesets": "^0.5.3",

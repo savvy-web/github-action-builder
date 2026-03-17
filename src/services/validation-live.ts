@@ -4,7 +4,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Effect, Layer, ParseResult, Schema } from "effect";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml } from "yaml-effect";
 
 import {
 	ActionYmlMissing,
@@ -78,15 +78,16 @@ export const ValidationServiceLive = Layer.effect(
 				});
 
 				// Parse YAML
-				const parsed = yield* Effect.try({
-					try: () => parseYaml(content),
+				const parsed = yield* parseYaml(content).pipe(
 					/* v8 ignore next 5 - requires malformed YAML */
-					catch: (error) =>
-						new ActionYmlSyntaxError({
-							path,
-							message: error instanceof Error ? error.message : "Invalid YAML syntax",
-						}),
-				});
+					Effect.mapError(
+						(error) =>
+							new ActionYmlSyntaxError({
+								path,
+								message: error.message,
+							}),
+					),
+				);
 
 				/* v8 ignore start - requires non-object YAML (e.g., scalar or array) */
 				if (!parsed || typeof parsed !== "object") {

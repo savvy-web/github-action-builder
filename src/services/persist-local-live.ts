@@ -15,7 +15,7 @@ import {
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { Effect, Layer } from "effect";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml } from "yaml-effect";
 
 import { ActionYmlPathError, PersistLocalError } from "../errors.js";
 import type { Config } from "../schemas/config.js";
@@ -125,7 +125,9 @@ function validateActionYmlPaths(actionYmlPath: string, destDir: string): Effect.
 		if (!existsSync(actionYmlPath)) return;
 
 		const content = readFileSync(actionYmlPath, "utf8");
-		const parsed = parseYaml(content) as { runs?: { main?: string; pre?: string; post?: string } };
+		const parsed = (yield* parseYaml(content).pipe(Effect.catchAll(() => Effect.succeed(null)))) as {
+			runs?: { main?: string; pre?: string; post?: string };
+		} | null;
 
 		if (!parsed?.runs) return;
 
