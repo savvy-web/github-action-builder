@@ -1,5 +1,21 @@
 # @savvy-web/github-action-builder
 
+## 0.4.0
+
+### Features
+
+* [`cf95494`](https://github.com/savvy-web/github-action-builder/commit/cf954940cbb7889afad8c790a7cc237552923b37) Migrate Effect dependencies to catalog:silk and replace yaml with yaml-effect for Effect-native YAML parsing. Closes #37.
+
+### Dependencies
+
+* | [`4320227`](https://github.com/savvy-web/github-action-builder/commit/43202276c726ab55988280d44412b30d6658c75f) | Dependency | Type    | Action  | From    | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :--------- | :------ | :------ | :------ | -- |
+  | @savvy-web/changesets                                                                                           | dependency | updated | ^0.4.1  | ^0.5.3  |    |
+  | @savvy-web/commitlint                                                                                           | dependency | updated | ^0.4.0  | ^0.4.2  |    |
+  | @savvy-web/lint-staged                                                                                          | dependency | updated | ^0.5.0  | ^0.6.1  |    |
+  | @savvy-web/rslib-builder                                                                                        | dependency | updated | ^0.16.0 | ^0.18.2 |    |
+  | @savvy-web/vitest                                                                                               | dependency | updated | ^0.2.0  | ^0.2.1  |    |
+
 ## 0.3.0
 
 ### Features
