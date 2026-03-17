@@ -60,12 +60,12 @@
 		"types:check": "tsgo --noEmit"
 	},
 	"dependencies": {
-		"@effect/cli": "^0.73.1",
-		"@effect/platform": "^0.94.2",
-		"@effect/platform-node": "^0.104.1",
-		"@effect/printer": "^0.47.0",
-		"@effect/printer-ansi": "^0.47.0",
-		"@effect/typeclass": "^0.38.0",
+		"@effect/cli": "^0.74.0",
+		"@effect/platform": "^0.95.0",
+		"@effect/platform-node": "^0.105.0",
+		"@effect/printer": "^0.48.0",
+		"@effect/printer-ansi": "^0.48.0",
+		"@effect/typeclass": "^0.39.0",
 		"@vercel/ncc": "^0.38.4",
 		"effect": "^3.19.19",
 		"picocolors": "^1.1.1",
