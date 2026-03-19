@@ -4,15 +4,16 @@ type: architecture
 status: current
 completeness: 95
 created: 2026-01-29
-updated: 2026-03-04
-last-synced: 2026-03-04
+updated: 2026-03-19
+last-synced: 2026-03-19
 authors:
   - C. Spencer Beggs
 tags:
   - architecture
   - github-actions
   - build-tool
-  - ncc
+  - rsbuild
+  - rspack
   - effect-ts
   - node24
 ---
@@ -38,9 +39,9 @@ tags:
 ## Overview
 
 `@savvy-web/github-action-builder` is a build tool for creating **Node.js 24**
-GitHub Actions from TypeScript source code. It uses Vercel's `@vercel/ncc` to
-bundle actions into self-contained JavaScript files that can be committed to
-a repository.
+GitHub Actions from TypeScript source code. It uses `@rsbuild/core` (rspack-based) to
+bundle actions into self-contained ESM JavaScript files that can be committed
+to a repository.
 
 **Key Features:**
 
@@ -153,7 +154,7 @@ interface ValidationService {
 
 ### BuildService (`src/services/build.ts`)
 
-Bundles TypeScript entry points with `@vercel/ncc`.
+Bundles TypeScript entry points with `@rsbuild/core` (rspack-based).
 
 ```typescript
 interface BuildService {
@@ -173,7 +174,8 @@ interface BuildService {
 - Cleans `dist/` directory before building (configurable)
 - Bundles each detected entry point
 - Writes `dist/package.json` with `{ "type": "module" }`
-- Handles assets from dynamic imports (ncc chunks)
+- Enforces single-file output via `all-in-one` chunk strategy
+- Releases rsbuild resources via `buildResult.close()` after each entry
 
 ### PersistLocalService (`src/services/persist-local.ts`)
 
@@ -239,10 +241,10 @@ const EntriesSchema = Schema.Struct({
 
 const BuildOptionsSchema = Schema.Struct({
   minify: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-  target: Schema.optionalWith(EsTarget, { default: () => "es2022" }),
   sourceMap: Schema.optionalWith(Schema.Boolean, { default: () => false }), // Off by default
   externals: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
-  quiet: Schema.optionalWith(Schema.Boolean, { default: () => false }),
+  // target hardcoded to ES2024 internally (Node 24 = V8 12.x)
+  // quiet removed (was ncc-specific)
 })
 
 const ValidationOptionsSchema = Schema.Struct({
@@ -326,10 +328,8 @@ The output structure is **flat** - all files go directly in `dist/`.
 | Option | Default | Description |
 | ------ | ------- | ----------- |
 | `minify` | `true` | Minify output for smaller bundles |
-| `target` | `"es2022"` | ECMAScript target version |
 | `sourceMap` | `false` | Source maps disabled by default |
-| `externals` | `[]` | No packages excluded from bundle |
-| `quiet` | `false` | Show build output |
+| `externals` | `[]` | Additional packages to exclude (node: always external) |
 
 ### Persist-Local Defaults
 
@@ -384,10 +384,8 @@ export default defineConfig({
   // Build options
   build: {
     minify: true,             // Default: true
-    target: "es2022",         // Default: "es2022"
     sourceMap: false,         // Default: false (disabled for smaller bundles)
-    externals: [],            // Packages to exclude from bundle
-    quiet: false,             // Default: false
+    externals: [],            // Additional packages to exclude (node: always external)
   },
 
   // Validation rules
@@ -458,12 +456,11 @@ via `--no-persist` (CLI) or `persistLocal.enabled: false` (config).
 
 1. **Detect entries** via `ConfigService.detectEntries()`
 2. **Clean output directory** (`dist/`) if `options.clean` is true (default)
-3. **Bundle each entry** sequentially using `@vercel/ncc`
-4. **Write outputs** to `dist/{type}.js`
-5. **Write source maps** if `config.build.sourceMap` is true
-6. **Write dynamic chunks** (assets from ncc) to `dist/`
-7. **Create `dist/package.json`** with `{ "type": "module" }`
-8. **Return BuildResult** with stats for each entry
+3. **Bundle each entry** sequentially using `createRsbuild()` from `@rsbuild/core`
+4. **Rsbuild writes outputs** directly to `dist/{type}.js` (single-file, ESM)
+5. **Release rsbuild resources** via `buildResult.close()`
+6. **Create `dist/package.json`** with `{ "type": "module" }`
+7. **Return BuildResult** with stats for each entry
 
 ### Build Result Schema
 
@@ -489,15 +486,24 @@ const BundleStatsSchema = Schema.Struct({
 });
 ```
 
-### NCC Bundler Options
+### Rsbuild Bundler Configuration
 
 ```typescript
-const nccOptions = {
-  minify: config.build.minify,     // Default: true
-  sourceMap: config.build.sourceMap, // Default: false
-  target: config.build.target,     // Default: "es2022"
-  externals: config.build.externals, // Default: []
-  quiet: true,                     // Always quiet internally
+const rsbuildConfig = {
+  source: { entry: { [entry.type]: entry.path } },
+  output: {
+    target: "node",
+    module: true,                          // ESM output (experimental)
+    distPath: { root: outputDir },
+    filename: { js: "[name].js" },
+    externals: [/^node:/, ...config.build.externals],
+    minify: config.build.minify,           // Default: true
+    sourceMap: config.build.sourceMap       // Default: false
+      ? { js: "source-map" } : false,
+  },
+  performance: {
+    chunkSplit: { strategy: "all-in-one" }, // Single-file output
+  },
 };
 ```
 
@@ -955,13 +961,15 @@ Each error carries contextual data:
 
 ## Rationale
 
-### Why `@vercel/ncc`?
+### Why `@rsbuild/core`?
 
-- Industry standard for bundling Node.js CLIs and GitHub Actions
-- Handles CommonJS/ESM interop well
-- Tree-shaking and minification built-in
-- Used by GitHub's own `actions/toolkit`
-- Supports dynamic imports as separate chunks
+- Clean ESM output without `eval("require")` hacks (ncc's webpack 4 runtime
+  broke Node 24's strict ESM format detection)
+- Proper CJS-to-ESM interop via rspack (replaces ncc's broken webpack 4 approach)
+- Tree-shaking via rspack dead code elimination
+- Already in the Savvy Web ecosystem (`@savvy-web/rslib-builder` uses rspack)
+- Programmatic API: `createRsbuild()` + `.build()` for clean integration
+- Replaced `@vercel/ncc` (effectively unmaintained, webpack 4-based) in v0.5.0
 
 ### Why Effect-TS?
 
@@ -1037,6 +1045,10 @@ Resolved questions from initial design:
 | CI strictness | Warn local, error CI | Fast dev feedback, strict CI gates |
 | Output structure | Flat `dist/` | Simple, no nested directories |
 | Service architecture | Effect Services | Testability, composability |
+| Bundler | `@rsbuild/core` (rspack) | Clean ESM, replaces ncc which broke Node 24 |
+| ES target | ES2024 (hardcoded) | Node 24 = V8 12.x, no config needed |
+| Output format | ESM (`output.module: true`) | Node 24 actions use `"type": "module"` |
+| Chunk strategy | `all-in-one` | GitHub Actions need single-file per entry |
 
 ---
 

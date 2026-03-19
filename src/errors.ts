@@ -342,7 +342,7 @@ export type ValidationError =
 export const BundleFailedBase = Data.TaggedError("BundleFailed");
 
 /**
- * Error when bundling with ncc fails.
+ * Error when bundling with rsbuild fails.
  *
  * @public
  */

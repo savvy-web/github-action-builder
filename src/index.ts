@@ -7,7 +7,7 @@
  * GitHub Actions into production-ready JavaScript bundles.
  *
  * @remarks
- * The package uses vercel/ncc under the hood to create single-file bundles
+ * The package uses rsbuild under the hood to create single-file bundles
  * that include all dependencies. It automatically detects entry points
  * (`main.ts`, `pre.ts`, `post.ts`) and validates `action.yml` configuration.
  *
@@ -41,7 +41,6 @@
  *   },
  *   build: {
  *     minify: true,
- *     target: "es2022",
  *   },
  * });
  * ```
@@ -65,7 +64,6 @@ export type {
 	Config,
 	ConfigInput,
 	Entries,
-	EsTarget,
 	PersistLocalOptions,
 	ValidationOptions,
 } from "./schemas/config.js";

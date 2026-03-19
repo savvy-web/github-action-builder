@@ -10,7 +10,6 @@ describe("defineConfig", () => {
 
 		expect(config.entries.main).toBe("src/main.ts");
 		expect(config.build.minify).toBe(true);
-		expect(config.build.target).toBe("es2022");
 		expect(config.build.sourceMap).toBe(false);
 		expect(config.validation.requireActionYml).toBe(true);
 	});
@@ -23,7 +22,6 @@ describe("defineConfig", () => {
 			},
 			build: {
 				minify: false,
-				target: "es2023",
 			},
 		});
 
@@ -31,7 +29,6 @@ describe("defineConfig", () => {
 		expect(config.entries.post).toBe("src/cleanup.ts");
 		expect(config.entries.pre).toBeUndefined();
 		expect(config.build.minify).toBe(false);
-		expect(config.build.target).toBe("es2023");
 		expect(config.build.sourceMap).toBe(false); // default preserved
 	});
 
@@ -41,7 +38,6 @@ describe("defineConfig", () => {
 		});
 
 		expect(config.build.minify).toBe(false);
-		expect(config.build.target).toBe("es2022");
 		expect(config.entries.main).toBe("src/main.ts");
 	});
 });

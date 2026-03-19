@@ -1,9 +1,9 @@
 # @savvy-web/github-action-builder
 
 A zero-config build tool for creating GitHub Actions from TypeScript source
-code. Bundles your action with [@vercel/ncc](https://github.com/vercel/ncc),
-validates `action.yml` against GitHub's official schema, and outputs
-production-ready Node.js 24 actions.
+code. Bundles your action with [@rsbuild/core](https://github.com/web-infra-dev/rsbuild)
+(rspack-based), validates `action.yml` against GitHub's official schema, and
+outputs production-ready Node.js 24 actions.
 
 ## Features
 
@@ -13,7 +13,8 @@ production-ready Node.js 24 actions.
   runtime
 - **Schema validation** - Validates `action.yml` against GitHub's official
   metadata specification
-- **Single-file bundles** - All dependencies inlined using @vercel/ncc
+- **Single-file bundles** - All npm dependencies inlined via rsbuild, `node:`
+  builtins externalized, with tree-shaking support
 - **Local testing** - Auto-persists build output for testing with
   [nektos/act](https://github.com/nektos/act)
 - **CI-aware** - Strict validation in CI, warnings-only locally

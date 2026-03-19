@@ -8,7 +8,6 @@ import {
 	ConfigInputSchema,
 	ConfigSchema,
 	EntriesSchema,
-	EsTarget,
 	PersistLocalOptionsSchema,
 	ValidationOptionsSchema,
 	defineConfig,
@@ -50,25 +49,19 @@ describe("BuildOptions Schema", () => {
 	it("applies defaults when decoding empty object", () => {
 		const options = Schema.decodeUnknownSync(BuildOptionsSchema)({});
 		expect(options.minify).toBe(true);
-		expect(options.target).toBe("es2022");
 		expect(options.sourceMap).toBe(false);
 		expect(options.externals).toEqual([]);
-		expect(options.quiet).toBe(false);
 	});
 
 	it("accepts custom options", () => {
 		const options = Schema.decodeUnknownSync(BuildOptionsSchema)({
 			minify: false,
-			target: "es2023",
-			sourceMap: false,
+			sourceMap: true,
 			externals: ["@aws-sdk/client-s3"],
-			quiet: true,
 		});
 		expect(options.minify).toBe(false);
-		expect(options.target).toBe("es2023");
-		expect(options.sourceMap).toBe(false);
+		expect(options.sourceMap).toBe(true);
 		expect(options.externals).toEqual(["@aws-sdk/client-s3"]);
-		expect(options.quiet).toBe(true);
 	});
 
 	it("decodes from plain object", () => {
@@ -76,7 +69,6 @@ describe("BuildOptions Schema", () => {
 			minify: false,
 		});
 		expect(decoded.minify).toBe(false);
-		expect(decoded.target).toBe("es2022"); // default applied
 	});
 });
 
@@ -120,22 +112,6 @@ describe("PersistLocalOptions Schema", () => {
 	});
 });
 
-describe("EsTarget Literal", () => {
-	it("validates correct targets", () => {
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es2020")).not.toThrow();
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es2021")).not.toThrow();
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es2022")).not.toThrow();
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es2023")).not.toThrow();
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es2024")).not.toThrow();
-	});
-
-	it("rejects invalid targets", () => {
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es2015")).toThrow();
-		expect(() => Schema.decodeUnknownSync(EsTarget)("es5")).toThrow();
-		expect(() => Schema.decodeUnknownSync(EsTarget)("invalid")).toThrow();
-	});
-});
-
 describe("ConfigInput Schema", () => {
 	it("accepts empty object with all optional fields", () => {
 		const input = Schema.decodeUnknownSync(ConfigInputSchema)({});
@@ -156,11 +132,11 @@ describe("ConfigInput Schema", () => {
 	it("decodes from plain object", () => {
 		const decoded = Schema.decodeUnknownSync(ConfigInputSchema)({
 			entries: { main: "custom.ts", pre: "pre.ts" },
-			build: { target: "es2023" },
+			build: { minify: false },
 		});
 		expect(decoded.entries?.main).toBe("custom.ts");
 		expect(decoded.entries?.pre).toBe("pre.ts");
-		expect(decoded.build?.target).toBe("es2023");
+		expect(decoded.build?.minify).toBe(false);
 	});
 });
 
@@ -204,7 +180,6 @@ describe("defineConfig", () => {
 		expect(config.entries.main).toBe("src/action.ts");
 		expect(config.entries.pre).toBeUndefined();
 		expect(config.build.minify).toBe(false);
-		expect(config.build.target).toBe("es2022"); // default
 	});
 
 	it("handles all entry types", () => {
@@ -222,19 +197,17 @@ describe("defineConfig", () => {
 
 	it("handles all build options", () => {
 		const config = defineConfig({
+			entries: { main: "src/action.ts", pre: "src/pre.ts", post: "src/post.ts" },
 			build: {
-				minify: true,
-				target: "es2023",
-				sourceMap: false,
-				externals: ["pkg1", "pkg2"],
-				quiet: true,
+				minify: false,
+				sourceMap: true,
+				externals: ["some-external"],
 			},
+			validation: { requireActionYml: false, maxBundleSize: "5mb", strict: true },
 		});
-		expect(config.build.minify).toBe(true);
-		expect(config.build.target).toBe("es2023");
-		expect(config.build.sourceMap).toBe(false);
-		expect(config.build.externals).toEqual(["pkg1", "pkg2"]);
-		expect(config.build.quiet).toBe(true);
+		expect(config.build.minify).toBe(false);
+		expect(config.build.sourceMap).toBe(true);
+		expect(config.build.externals).toEqual(["some-external"]);
 	});
 
 	it("handles all validation options", () => {

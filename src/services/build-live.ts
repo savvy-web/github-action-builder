@@ -1,11 +1,11 @@
-/* v8 ignore start - build service requires actual ncc bundling for integration testing */
+/* v8 ignore start - build service requires actual bundling for integration testing */
 /**
  * BuildService Layer implementation.
  *
  */
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createRsbuild } from "@rsbuild/core";
 import { Effect, Layer } from "effect";
 
 import { BundleFailed, CleanError, WriteError } from "../errors.js";
@@ -14,75 +14,6 @@ import type { BuildResult, BuildRunnerOptions, BundleResult } from "./build.js";
 import { BuildService } from "./build.js";
 import type { DetectedEntry } from "./config.js";
 import { ConfigService } from "./config.js";
-
-// =============================================================================
-// NCC Bundler Types and Functions
-// =============================================================================
-
-const require: NodeJS.Require = createRequire(import.meta.url);
-
-/**
- * Options for ncc bundling.
- */
-interface NccOptions {
-	cache?: string | false;
-	externals?: readonly string[];
-	filterAssetBase?: string;
-	minify?: boolean;
-	sourceMap?: boolean;
-	assetBuilds?: boolean;
-	sourceMapBasePrefix?: string;
-	sourceMapRegister?: boolean;
-	watch?: boolean;
-	license?: string;
-	target?: string;
-	v8cache?: boolean;
-	quiet?: boolean;
-	debugLog?: boolean;
-}
-
-/**
- * Asset data from ncc bundling.
- */
-interface NccAsset {
-	source: Buffer | string;
-	permissions?: number;
-	symlinks?: string[];
-}
-
-/**
- * Result of ncc bundling.
- */
-interface NccResult {
-	code: string;
-	map: string | undefined;
-	assets: Record<string, NccAsset>;
-}
-
-type NccFunction = (input: string, options?: NccOptions) => Promise<NccResult>;
-
-const ncc: NccFunction = require("@vercel/ncc");
-
-/**
- * Bundle a TypeScript/JavaScript file using ncc.
- */
-async function bundle(entryPath: string, options: NccOptions = {}): Promise<NccResult> {
-	return ncc(entryPath, {
-		minify: options.minify ?? true,
-		sourceMap: options.sourceMap ?? false,
-		target: options.target ?? "es2022",
-		quiet: options.quiet ?? true,
-		externals: options.externals ?? [],
-		...options,
-	});
-}
-
-/**
- * Get the size of bundled code in bytes.
- */
-function getBundleSize(code: string): number {
-	return Buffer.byteLength(code, "utf8");
-}
 
 /**
  * Format bytes as a human-readable string.
@@ -173,9 +104,9 @@ function writeFile(path: string, content: string): Effect.Effect<void, WriteErro
 }
 
 /**
- * Bundle a single entry with ncc.
+ * Bundle a single entry with rsbuild.
  */
-/* v8 ignore start - bundling requires actual ncc execution */
+/* v8 ignore start - bundling requires actual rsbuild execution */
 function bundleEntry(
 	entry: DetectedEntry,
 	config: Config,
@@ -183,16 +114,28 @@ function bundleEntry(
 ): Effect.Effect<BundleResult, BundleFailed | WriteError> {
 	return Effect.gen(function* () {
 		const startTime = Date.now();
+		const outputDir = resolve(cwd, "dist");
 
-		// Bundle with ncc
-		const nccResult: NccResult = yield* Effect.tryPromise({
+		// createRsbuild returns a Promise<RsbuildInstance>
+		const rsbuild = yield* Effect.tryPromise({
 			try: () =>
-				bundle(entry.path, {
-					minify: config.build.minify,
-					sourceMap: config.build.sourceMap,
-					target: config.build.target,
-					externals: [...config.build.externals],
-					quiet: config.build.quiet,
+				createRsbuild({
+					rsbuildConfig: {
+						source: { entry: { [entry.type]: entry.path } },
+						output: {
+							target: "node",
+							module: true,
+							distPath: { root: outputDir },
+							filename: { js: "[name].js" },
+							externals: [/^node:/, ...config.build.externals],
+							cleanDistPath: false,
+							minify: config.build.minify,
+							sourceMap: config.build.sourceMap ? { js: "source-map" as const } : false,
+						},
+						performance: {
+							chunkSplit: { strategy: "all-in-one" },
+						},
+					},
 				}),
 			catch: (error) =>
 				new BundleFailed({
@@ -201,29 +144,35 @@ function bundleEntry(
 				}),
 		});
 
-		// Write output
-		const outputPath = resolve(cwd, entry.output);
+		const buildResult = yield* Effect.tryPromise({
+			try: () => rsbuild.build(),
+			catch: (error) =>
+				new BundleFailed({
+					entry: entry.path,
+					cause: error,
+				}),
+		});
 
-		// Write main bundle
-		yield* writeFile(outputPath, nccResult.code);
+		// Release rsbuild resources (file watchers, worker threads)
+		yield* Effect.tryPromise({
+			try: () => buildResult.close(),
+			catch: (error) =>
+				new BundleFailed({
+					entry: entry.path,
+					cause: new Error(`rsbuild close() failed: ${error}`),
+				}),
+		});
 
-		// Write source map only if enabled in config
-		if (config.build.sourceMap && nccResult.map) {
-			yield* writeFile(`${outputPath}.map`, nccResult.map);
-		}
-
-		// Write assets (dynamic chunks, etc.)
-		if (nccResult.assets) {
-			const outputDir = resolve(outputPath, "..");
-			for (const [assetName, assetData] of Object.entries(nccResult.assets)) {
-				const assetPath = resolve(outputDir, assetName);
-				const content = typeof assetData.source === "string" ? assetData.source : assetData.source.toString("utf8");
-				yield* writeFile(assetPath, content);
-			}
-		}
-
+		const outputPath = resolve(outputDir, `${entry.type}.js`);
+		const size = yield* Effect.try({
+			try: () => statSync(outputPath).size,
+			catch: (error) =>
+				new BundleFailed({
+					entry: entry.path,
+					cause: error,
+				}),
+		});
 		const duration = Date.now() - startTime;
-		const size = getBundleSize(nccResult.code);
 
 		return {
 			success: true,
@@ -246,7 +195,7 @@ function bundleEntry(
  * Live implementation of BuildService.
  *
  * @remarks
- * Uses the existing ncc wrapper for bundling.
+ * Uses rsbuild for bundling.
  */
 export const BuildServiceLive = Layer.effect(
 	BuildService,
@@ -254,7 +203,7 @@ export const BuildServiceLive = Layer.effect(
 		const configService = yield* ConfigService;
 
 		return {
-			/* v8 ignore start - build execution requires actual ncc bundling */
+			/* v8 ignore start - build execution requires actual rsbuild bundling */
 			build: (config: Config, options: BuildRunnerOptions = {}) =>
 				Effect.gen(function* () {
 					const cwd = options.cwd ?? process.cwd();

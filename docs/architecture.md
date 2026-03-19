@@ -101,7 +101,7 @@ interface ValidationService {
 
 ### BuildService
 
-Bundles TypeScript entry points with `@vercel/ncc`.
+Bundles TypeScript entry points with `@rsbuild/core` (rspack-based).
 
 ```typescript
 interface BuildService {
@@ -122,9 +122,10 @@ interface BuildService {
 **Key behaviors:**
 
 * Cleans `dist/` directory before building (configurable)
-* Bundles each detected entry point with ncc
+* Bundles each detected entry point with rsbuild (rspack)
 * Writes `dist/package.json` with `{ "type": "module" }`
-* Handles assets from dynamic imports (ncc chunks)
+* Produces clean ESM output without eval("require") hacks
+* Supports tree-shaking via rspack, `node:` builtins externalized
 
 ## Layer Composition
 
@@ -187,7 +188,7 @@ ConfigService   ConfigService  ValidationService  BuildService
 ### Stage 4: Build
 
 1. Clean `dist/` directory
-2. Bundle each entry with @vercel/ncc
+2. Bundle each entry with rsbuild (rspack)
 3. Write output files
 4. Create `dist/package.json`
 5. Report statistics
@@ -234,7 +235,7 @@ Effect.gen(function* () {
 
 **Build Errors:**
 
-* `BundleFailed` - ncc bundling failed
+* `BundleFailed` - rsbuild bundling failed
 * `WriteError` - Failed to write output file
 * `CleanError` - Failed to clean output directory
 * `BuildFailed` - Overall build process failed
@@ -364,7 +365,7 @@ src/
 | Decision | Rationale |
 | --- | --- |
 | Node.js 24 only | Modern ESM, latest features, simpler config |
-| @vercel/ncc | Industry standard for bundling Node.js actions |
+| @rsbuild/core | Rspack-based bundler producing clean ESM with tree-shaking |
 | Effect-TS | Type-safe errors, DI, testability |
 | @effect/schema | Native Effect integration, better than Zod |
 | Source maps off | Smaller bundles, rarely needed |

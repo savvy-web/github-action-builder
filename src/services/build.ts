@@ -106,7 +106,7 @@ export type BuildResult = typeof BuildResultSchema.Type;
  *
  * @remarks
  * This service handles:
- * - Bundling TypeScript entries with vercel/ncc
+ * - Bundling TypeScript entries with rsbuild
  * - Managing output directory
  * - Collecting build statistics
  * - Formatting build results

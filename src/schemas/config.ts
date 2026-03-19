@@ -45,24 +45,10 @@ export type Entries = typeof EntriesSchema.Type;
 // =============================================================================
 
 /**
- * ECMAScript target versions supported by the bundler.
- *
- * @internal
- */
-export const EsTarget = Schema.Literal("es2020", "es2021", "es2022", "es2023", "es2024");
-
-/**
- * Type for ECMAScript target.
- *
- * @public
- */
-export type EsTarget = typeof EsTarget.Type;
-
-/**
  * Schema for build options.
  *
  * @remarks
- * Build options control how the TypeScript source is bundled using `@vercel/ncc`.
+ * Build options control how the TypeScript source is bundled using rsbuild.
  * The bundler creates a single JavaScript file with all dependencies inlined.
  *
  * @internal
@@ -70,14 +56,10 @@ export type EsTarget = typeof EsTarget.Type;
 export const BuildOptionsSchema = Schema.Struct({
 	/** Enable minification to reduce bundle size. Defaults to true. */
 	minify: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-	/** ECMAScript target version for the output. Defaults to "es2022". */
-	target: Schema.optionalWith(EsTarget, { default: () => "es2022" as const }),
 	/** Generate source maps for debugging. Defaults to false. */
 	sourceMap: Schema.optionalWith(Schema.Boolean, { default: () => false }),
-	/** Packages to exclude from the bundle. Defaults to []. */
+	/** Packages to exclude from the bundle (in addition to node: builtins). Defaults to []. */
 	externals: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
-	/** Suppress build output. Defaults to false. */
-	quiet: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 });
 
 /**
@@ -169,10 +151,8 @@ export const ConfigInputSchema = Schema.Struct({
 	build: Schema.optional(
 		Schema.Struct({
 			minify: Schema.optional(Schema.Boolean),
-			target: Schema.optional(EsTarget),
 			sourceMap: Schema.optional(Schema.Boolean),
 			externals: Schema.optional(Schema.Array(Schema.String)),
-			quiet: Schema.optional(Schema.Boolean),
 		}),
 	),
 	validation: Schema.optional(
@@ -271,7 +251,6 @@ export type Config = typeof ConfigSchema.Type;
  *   },
  *   build: {
  *     minify: true,
- *     target: "es2022",
  *     sourceMap: true,
  *     externals: ["@aws-sdk/client-s3"],
  *   },

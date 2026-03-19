@@ -6,8 +6,8 @@ code in this repository.
 ## Project Status
 
 **GitHub Action Builder** - CLI tool and library for building Node.js 24
-GitHub Actions using `@vercel/ncc`. Validates `action.yml` against GitHub
-schema and bundles TypeScript into production-ready JavaScript.
+GitHub Actions using `@rsbuild/core` (rspack-based). Validates `action.yml`
+against GitHub schema and bundles TypeScript into production-ready JavaScript.
 
 **For detailed architecture:**
 -> `@./.claude/design/github-action-builder/architecture.md`

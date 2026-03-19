@@ -73,7 +73,7 @@ The build command:
 
 1. Loads configuration from `action.config.ts` (or defaults)
 2. Validates the project (unless `--no-validate`)
-3. Bundles each entry point with @vercel/ncc
+3. Bundles each entry point with rsbuild (rspack)
 4. Writes output to `dist/`
 
 Example output:
@@ -288,7 +288,7 @@ export default GitHubAction.create({
   // build: {
   //   minify: true,
   //   sourceMap: false,
-  //   target: "es2022",
+  //   externals: [],
   // },
 });
 ```
