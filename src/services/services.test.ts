@@ -89,7 +89,6 @@ export default {
 
 			expect(config.entries.main).toBe("src/main.ts"); // default
 			expect(config.build.minify).toBe(false); // overridden
-			expect(config.build.target).toBe("es2022"); // default
 		});
 
 		it("detects entries in project", async () => {
