@@ -86,8 +86,9 @@ function bundleEntry(entry, config, cwd) {
         source: { entry: { [entry.type]: entry.path } },
         output: {
           target: "node",
+          module: true,  // Required: emit ESM, not CJS (experimental flag)
           distPath: { root: outputDir },
-          filename: { js: outputFilename },
+          filename: { js: "[name].js" },
           externals: [/^node:/, ...config.build.externals],
           minify: config.build.minify,
           sourceMap: config.build.sourceMap
@@ -100,13 +101,16 @@ function bundleEntry(entry, config, cwd) {
       },
     });
 
-    yield* Effect.tryPromise({
+    const buildResult = yield* Effect.tryPromise({
       try: () => rsbuild.build(),
       catch: (error) => new BundleFailed({ entry: entry.path, cause: error }),
     });
 
+    // Release rsbuild resources (file watchers, worker threads)
+    yield* Effect.promise(() => buildResult.close());
+
     // Read output file size (rsbuild writes to disk directly)
-    const outputPath = resolve(outputDir, outputFilename);
+    const outputPath = resolve(outputDir, `${entry.type}.js`);
     const size = statSync(outputPath).size;
     const duration = Date.now() - startTime;
 
@@ -122,10 +126,18 @@ function bundleEntry(entry, config, cwd) {
 disk. Rsbuild writes to disk directly. `bundleEntry()` reads the output file to
 get size stats rather than measuring a string.
 
+**Note on `output.module`:** This flag is marked experimental in rsbuild. It is
+required to emit ESM instead of CJS. Without it, `output.target: "node"` defaults
+to CJS, which would defeat the purpose of the migration. The `node:*` regex in
+externals is a defensive safety net — rsbuild auto-externalizes Node builtins
+when `target: "node"`, but the explicit regex ensures the `node:` protocol prefix
+form is covered.
+
 **What stays unchanged:**
 
-- `cleanDirectory()`, `writeFile()`, `getBundleSize()`, `formatBytes()`,
-  `formatBuildResult()`
+- `cleanDirectory()`, `writeFile()`, `formatBytes()`, `formatBuildResult()`
+- `getBundleSize()` is removed -- replaced by `statSync(outputPath).size` since
+  rsbuild writes to disk directly (no in-memory string to measure)
 - `build()` orchestration (sequential entry bundling, `dist/package.json` write,
   result collection)
 - All Effect patterns, error types, Layer composition
@@ -155,6 +167,12 @@ purely an implementation swap behind a stable interface.
 **GitHubAction class** (`src/github-action.ts`):
 
 - Update docstring examples that show `target: "es2022"` in config
+
+**Docstring updates across codebase:**
+
+- `defineConfig()` in `config.ts` -- remove `target: "es2022"` from `@example`
+- `BundleFailed` in `errors.ts` -- update JSDoc from "ncc" to "rsbuild"
+- `BuildService` in `build.ts` -- update JSDoc from "vercel/ncc" to "rsbuild"
 
 ### 5. Dependency changes
 
