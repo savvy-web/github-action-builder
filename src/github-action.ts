@@ -151,7 +151,7 @@ export type GitHubActionBuildResult = typeof GitHubActionBuildResultSchema.Type;
  *   const action = GitHubAction.create({
  *     config: {
  *       entries: { main: "src/action.ts" },
- *       build: { minify: true, target: "es2022" },
+ *       build: { minify: true },
  *     },
  *     cwd: "/path/to/project",
  *   });
@@ -306,7 +306,7 @@ export class GitHubAction {
 	 * The build process:
 	 * 1. Loads configuration (if not already loaded)
 	 * 2. Validates the project (unless `skipValidation` is set)
-	 * 3. Bundles each entry point with vercel/ncc
+	 * 3. Bundles each entry point with rsbuild
 	 * 4. Writes output to the `dist/` directory
 	 *
 	 * @returns Build result with success status and details
@@ -329,7 +329,7 @@ export class GitHubAction {
 	 * main();
 	 * ```
 	 */
-	/* v8 ignore start - build execution requires actual ncc bundling */
+	/* v8 ignore start - build execution requires actual rsbuild bundling */
 	async build(): Promise<GitHubActionBuildResult> {
 		try {
 			const config = await this.loadConfig();

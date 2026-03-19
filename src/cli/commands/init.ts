@@ -128,7 +128,6 @@ export default GitHubAction.create({
 	// build: {
 	//   minify: true,
 	//   sourceMap: false,
-	//   target: "es2022",
 	// },
 
 	// Validation options
