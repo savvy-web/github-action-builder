@@ -154,10 +154,24 @@ function bundleEntry(
 		});
 
 		// Release rsbuild resources (file watchers, worker threads)
-		yield* Effect.promise(() => buildResult.close());
+		yield* Effect.tryPromise({
+			try: () => buildResult.close(),
+			catch: (error) =>
+				new BundleFailed({
+					entry: entry.path,
+					cause: new Error(`rsbuild close() failed: ${error}`),
+				}),
+		});
 
 		const outputPath = resolve(outputDir, `${entry.type}.js`);
-		const size = statSync(outputPath).size;
+		const size = yield* Effect.try({
+			try: () => statSync(outputPath).size,
+			catch: (error) =>
+				new BundleFailed({
+					entry: entry.path,
+					cause: error,
+				}),
+		});
 		const duration = Date.now() - startTime;
 
 		return {
