@@ -128,6 +128,7 @@ function bundleEntry(
 							distPath: { root: outputDir },
 							filename: { js: "[name].js" },
 							externals: [/^node:/, ...config.build.externals],
+							cleanDistPath: false,
 							minify: config.build.minify,
 							sourceMap: config.build.sourceMap ? { js: "source-map" as const } : false,
 						},
