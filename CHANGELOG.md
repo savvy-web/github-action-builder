@@ -1,5 +1,25 @@
 # @savvy-web/github-action-builder
 
+## 0.5.0
+
+### Breaking Changes
+
+* [`f0710f9`](https://github.com/savvy-web/github-action-builder/commit/f0710f9f5e1fb178ccd565e42e3444a04f3a7291) `BuildOptions.target` and `BuildOptions.quiet` config fields removed.
+  Target is now hardcoded to ES2024 (Node 24). The `EsTarget` type export is removed.
+
+### Features
+
+* [`f0710f9`](https://github.com/savvy-web/github-action-builder/commit/f0710f9f5e1fb178ccd565e42e3444a04f3a7291) Replace `@vercel/ncc` with `@rsbuild/core` for GitHub Action bundling.
+
+- Produces clean ESM output without `eval("require")` hacks that broke Node 24
+- Supports tree-shaking via rspack
+- Single-file output per entry point with `all-in-one` chunk strategy
+- `node:*` builtins always externalized automatically
+
+### Other
+
+* [`f0710f9`](https://github.com/savvy-web/github-action-builder/commit/f0710f9f5e1fb178ccd565e42e3444a04f3a7291) Fixes #43
+
 ## 0.4.0
 
 ### Features
