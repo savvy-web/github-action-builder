@@ -72,11 +72,11 @@
 		"yaml-effect": "^0.1.5"
 	},
 	"devDependencies": {
-		"@savvy-web/changesets": "^0.5.3",
+		"@savvy-web/changesets": "^0.6.0",
 		"@savvy-web/commitlint": "^0.4.2",
 		"@savvy-web/lint-staged": "^0.6.1",
-		"@savvy-web/rslib-builder": "^0.18.2",
-		"@savvy-web/vitest": "^0.2.1"
+		"@savvy-web/rslib-builder": "^0.19.0",
+		"@savvy-web/vitest": "^1.0.0"
 	},
 	"peerDependencies": {
 		"@types/node": "catalog:silkPeers",
