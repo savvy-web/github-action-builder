@@ -78,8 +78,8 @@ importers:
         specifier: catalog:silkPeers
         version: 5.9.3
       yaml-effect:
-        specifier: ^0.1.5
-        version: 0.1.7(effect@3.21.0)
+        specifier: ^0.2.2
+        version: 0.2.2(effect@3.21.0)
     devDependencies:
       '@savvy-web/changesets':
         specifier: ^0.6.0
@@ -3757,8 +3757,8 @@ packages:
   yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
-  yaml-effect@0.1.7:
-    resolution: {integrity: sha512-3gSV9rEnpwmonOeOufYE+xJMQ/PVIOf6RImW2l8kUnFURdLFmrZ1sURljRx8yo5x8eAEqa/KvdRLVnwyzNNDUg==}
+  yaml-effect@0.2.2:
+    resolution: {integrity: sha512-Jnk+guKw4aSyn2PI8JubJ2zGVTtmpdFwFkgCfnTCOKBHb/iwf+VeKxmtevwtgw97CsZuKo4Wt6NzCXwvUdzXcA==}
     peerDependencies:
       effect: ^3.19.0
 
@@ -7817,7 +7817,7 @@ snapshots:
 
   yallist@4.0.0: {}
 
-  yaml-effect@0.1.7(effect@3.21.0):
+  yaml-effect@0.2.2(effect@3.21.0):
     dependencies:
       effect: 3.21.0
 

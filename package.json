@@ -69,7 +69,7 @@
 		"@rsbuild/core": "^1.7.3",
 		"effect": "catalog:silk",
 		"picocolors": "^1.1.1",
-		"yaml-effect": "^0.1.5"
+		"yaml-effect": "^0.2.2"
 	},
 	"devDependencies": {
 		"@savvy-web/changesets": "^0.6.0",
