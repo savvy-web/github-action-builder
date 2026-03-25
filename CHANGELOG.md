@@ -1,5 +1,11 @@
 # @savvy-web/github-action-builder
 
+## 0.5.1
+
+### Features
+
+* [`aeb5218`](https://github.com/savvy-web/github-action-builder/commit/aeb521873e712fa4826643fb3896c3d8ec06f9de) Upgrades to new `@savvy-web/vitest` standard setup
+
 ## 0.5.0
 
 ### Breaking Changes
