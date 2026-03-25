@@ -149,6 +149,20 @@ if (result.success) {
 }
 ```
 
+## Shared TypeScript Configuration
+
+The package exports a base `tsconfig.json` for GitHub Action projects:
+
+```json
+{
+  "extends": ["@savvy-web/github-action-builder/tsconfig/action.json"]
+}
+```
+
+This provides sensible defaults for Node.js 24 ESM actions including strict
+mode, ES2022 target, and bundler module resolution. Override or extend as
+needed in your project's `tsconfig.json`.
+
 ## Requirements
 
 - Node.js 24+

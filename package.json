@@ -34,7 +34,8 @@
 	},
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./tsconfig/action.json": "./src/public/tsconfig/action.json"
 	},
 	"bin": {
 		"github-action-builder": "./src/cli/index.ts"
@@ -68,8 +69,9 @@
 		"@effect/typeclass": "catalog:silk",
 		"@rsbuild/core": "^1.7.3",
 		"effect": "catalog:silk",
+		"jiti": "^2.6.1",
 		"picocolors": "^1.1.1",
-		"yaml-effect": "^0.1.5"
+		"yaml-effect": "^0.2.3"
 	},
 	"devDependencies": {
 		"@savvy-web/changesets": "^0.6.0",

@@ -5,6 +5,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { Effect, Layer } from "effect";
+import { createJiti } from "jiti";
 
 import { ConfigInvalid, ConfigLoadFailed, ConfigNotFound, MainEntryMissing } from "../errors.js";
 import type { ConfigInput } from "../schemas/config.js";
@@ -93,10 +94,17 @@ export const ConfigServiceLive = Layer.succeed(ConfigService, {
 			/* v8 ignore stop */
 
 			// Load the config file via dynamic import
+			// Use jiti for .ts files since Node.js can't natively import TypeScript
 			const absolutePath = resolve(cwd, configPath);
 			/* v8 ignore start - requires invalid JS/TS config file */
 			const configModule = yield* Effect.tryPromise({
-				try: async () => import(absolutePath),
+				try: async () => {
+					if (absolutePath.endsWith(".ts")) {
+						const jiti = createJiti(absolutePath, { interopDefault: true });
+						return jiti.import(absolutePath);
+					}
+					return import(absolutePath);
+				},
 				catch: (error) =>
 					new ConfigLoadFailed({
 						path: configPath,
