@@ -11,6 +11,12 @@ export default NodeLibraryBuilder.create({
 			],
 		},
 	},
+	copyPatterns: [
+		{
+			from: "./**/*.json",
+			context: "./src/public",
+		},
+	],
 	transform({ pkg }) {
 		delete pkg.devDependencies;
 		delete pkg.bundleDependencies;

@@ -299,6 +299,22 @@ Config load failed: Cannot find module '@savvy-web/github-action-builder'
 2. Check for typos in import paths
 3. Verify your `tsconfig.json` supports ESM imports
 
+### "Unknown file extension .ts" in CI
+
+**Error:**
+
+```text
+ConfigLoadFailed: Unknown file extension ".ts" for /path/to/action.config.ts
+```
+
+**Cause:** This occurred in versions prior to 0.6.0 where `action.config.ts`
+was loaded via native `import()`, which requires a TypeScript loader registered
+in the Node.js runtime. CI environments typically do not have one.
+
+**Solution:** Upgrade to `@savvy-web/github-action-builder@0.6.0` or later,
+which uses [jiti](https://github.com/unjs/jiti) to load TypeScript config files
+without requiring an external loader.
+
 ## CI vs Local Differences
 
 ### "Build fails in CI but works locally"

@@ -430,9 +430,32 @@ The builder looks for configuration in this order:
 
 1. Path specified with `--config` flag
 2. `action.config.ts` in the current directory
+3. `action.config.js` in the current directory
+4. `action.config.mjs` in the current directory
 
-Only TypeScript configuration files are supported to ensure proper ESM and
-Node.js 24 compatibility.
+TypeScript config files (`.ts`) are loaded using
+[jiti](https://github.com/unjs/jiti), so they work in any environment including
+CI runners without a TypeScript loader registered.
+
+## Shared TypeScript Configuration
+
+The package exports a base `tsconfig.json` for GitHub Action projects:
+
+```json
+{
+  "extends": ["@savvy-web/github-action-builder/tsconfig/action.json"]
+}
+```
+
+This includes sensible defaults for Node.js 24 ESM actions:
+
+* `target`: ES2022
+* `module`: ESNext with bundler resolution
+* `strict`: enabled
+* Includes patterns for `src/`, `lib/`, `__test__/`, `types/`, and root-level
+  TypeScript files (covers `action.config.ts`)
+
+Override any setting in your project's `tsconfig.json` as needed.
 
 ## Programmatic Configuration
 

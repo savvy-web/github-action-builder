@@ -95,6 +95,21 @@ branding:
   color: "blue"
 ```
 
+### tsconfig.json
+
+The generated `tsconfig.json` extends the shared base configuration:
+
+```json
+{
+  "extends": ["@savvy-web/github-action-builder/tsconfig/action.json"]
+}
+```
+
+This provides ES2022 target, strict mode, bundler module resolution, and
+includes patterns for `src/`, `lib/`, `__test__/`, and root-level TypeScript
+files like `action.config.ts`. You can override any setting in your project's
+`tsconfig.json`.
+
 ### src/main.ts
 
 The main action entry point:
