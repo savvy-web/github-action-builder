@@ -1,5 +1,15 @@
 # @savvy-web/github-action-builder
 
+## 0.6.0
+
+### Features
+
+* [`f472d58`](https://github.com/savvy-web/github-action-builder/commit/f472d583bc3ee268a8e006b1bb64d3104bb58056) Added a shared `tsconfig.json` for GitHub Action consumer projects, exported at `@savvy-web/github-action-builder/tsconfig/action.json`. The config provides ES2022 target, strict mode, bundler module resolution, and standard include patterns for action source trees.
+
+### Bug Fixes
+
+* [`f472d58`](https://github.com/savvy-web/github-action-builder/commit/f472d583bc3ee268a8e006b1bb64d3104bb58056) Fixed `TypeError: Unknown file extension ".ts"` when loading `action.config.ts` in CI environments. Native `import()` cannot load TypeScript files without a registered loader. Config files with a `.ts` extension are now loaded via `jiti`; `.js` and `.mjs` configs continue to use native import.
+
 ## 0.5.1
 
 ### Features
