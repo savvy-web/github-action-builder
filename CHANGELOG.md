@@ -1,5 +1,20 @@
 # @savvy-web/github-action-builder
 
+## 0.6.1
+
+### Dependencies
+
+* | [`6742fa2`](https://github.com/savvy-web/github-action-builder/commit/6742fa2ac673b0a40103575784d123eb42edc037) | Dependency    | Type    | Action | From   | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :----- | :----- | -- |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.6.3 | ^0.6.4 |    |
+
+- | [`d206b06`](https://github.com/savvy-web/github-action-builder/commit/d206b064efb0ea7b63c94c2dd892ed976e40cdc5) | Dependency    | Type    | Action | From   | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :----- | :----- | -- |
+  | @savvy-web/changesets                                                                                           | devDependency | updated | ^0.6.0 | ^0.7.0 |    |
+  | @savvy-web/commitlint                                                                                           | devDependency | updated | ^0.4.2 | ^0.4.3 |    |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.6.1 | ^0.6.3 |    |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.0.0 | ^1.0.1 |    |
+
 ## 0.6.0
 
 ### Features
