@@ -1,5 +1,11 @@
 # @savvy-web/github-action-builder
 
+## 0.6.2
+
+### Bug Fixes
+
+* [`9263759`](https://github.com/savvy-web/github-action-builder/commit/92637598ca6f3d062c105cc8f379697e0612ad7d) Added explicit `"types": ["node"]` to the exported `tsconfig/action.json` so that `tsgo` correctly resolves `@types/node` in pnpm's symlinked `node_modules`.
+
 ## 0.6.1
 
 ### Dependencies
