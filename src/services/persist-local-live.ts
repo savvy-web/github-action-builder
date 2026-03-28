@@ -158,13 +158,14 @@ const ACTRC_CONTENT = `--container-architecture linux/amd64
 `;
 
 const ACT_WORKFLOW_CONTENT = `name: Local Test
-on: push
+on:
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/local
 `;
 
