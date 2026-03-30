@@ -67,7 +67,7 @@
 		"@effect/printer": "catalog:silk",
 		"@effect/printer-ansi": "catalog:silk",
 		"@effect/typeclass": "catalog:silk",
-		"@rsbuild/core": "^1.7.4",
+		"@rsbuild/core": "^1.7.5",
 		"effect": "catalog:silk",
 		"jiti": "^2.6.1",
 		"picocolors": "^1.1.1",
@@ -75,10 +75,10 @@
 	},
 	"devDependencies": {
 		"@savvy-web/changesets": "^0.7.1",
-		"@savvy-web/commitlint": "^0.4.4",
+		"@savvy-web/commitlint": "^0.4.5",
 		"@savvy-web/lint-staged": "^0.6.6",
 		"@savvy-web/rslib-builder": "^0.19.1",
-		"@savvy-web/vitest": "^1.1.0"
+		"@savvy-web/vitest": "^1.2.0"
 	},
 	"peerDependencies": {
 		"@types/node": "catalog:silkPeers",
