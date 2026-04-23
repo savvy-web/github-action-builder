@@ -1,5 +1,48 @@
 # @savvy-web/github-action-builder
 
+## 0.6.3
+
+### Dependencies
+
+* | [`ab0c9cc`](https://github.com/savvy-web/github-action-builder/commit/ab0c9cc7fa2c06eae13dc566a28210f8fd641a18) | Dependency    | Type    | Action  | From    | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :------ | :------ | -- |
+  | @savvy-web/changesets                                                                                           | devDependency | updated | ^0.7.4  | ^0.8.0  |    |
+  | @savvy-web/commitlint                                                                                           | devDependency | updated | ^0.5.2  | ^0.6.0  |    |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.7.3  | ^0.8.0  |    |
+  | @savvy-web/rslib-builder                                                                                        | devDependency | updated | ^0.20.0 | ^0.20.1 |    |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.2.2  | ^1.3.0  |    |
+
+- | [`65b7ced`](https://github.com/savvy-web/github-action-builder/commit/65b7cedb6bdcc88e288cda125991a766772d097d) | Dependency    | Type    | Action  | From    | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :------ | :------ | -- |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.8.0  | ^1.0.0  |    |
+  | @savvy-web/rslib-builder                                                                                        | devDependency | updated | ^0.20.1 | ^0.20.2 |    |
+
+* | [`d1390c7`](https://github.com/savvy-web/github-action-builder/commit/d1390c7fda53f7e8c500e4cbe35785843c9673f4) | Dependency    | Type    | Action  | From    | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :------ | :------ | -- |
+  | @savvy-web/changesets                                                                                           | devDependency | updated | ^0.7.3  | ^0.7.4  |    |
+  | @savvy-web/commitlint                                                                                           | devDependency | updated | ^0.5.1  | ^0.5.2  |    |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.7.1  | ^0.7.3  |    |
+  | @savvy-web/rslib-builder                                                                                        | devDependency | updated | ^0.19.1 | ^0.20.0 |    |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.2.1  | ^1.2.2  |    |
+
+- | [`b7c3f03`](https://github.com/savvy-web/github-action-builder/commit/b7c3f037ffc1a49191ae21453a442cba297d46d0) | Dependency    | Type    | Action | From   | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :----- | :----- | -- |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.6.5 | ^0.6.6 |    |
+
+* | [`3148c39`](https://github.com/savvy-web/github-action-builder/commit/3148c39c1a2ab94463cb19e6c6335791fc013893) | Dependency    | Type    | Action | From   | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :----- | :----- | -- |
+  | @savvy-web/changesets                                                                                           | devDependency | updated | ^0.7.1 | ^0.7.2 |    |
+  | @savvy-web/commitlint                                                                                           | devDependency | updated | ^0.4.4 | ^0.5.0 |    |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.6.6 | ^0.7.0 |    |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.1.0 | ^1.2.0 |    |
+
+- | [`47a23a3`](https://github.com/savvy-web/github-action-builder/commit/47a23a33c76149b506d128b3d229b481a376f77c) | Dependency    | Type    | Action | From   | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :----- | :----- | -- |
+  | @savvy-web/changesets                                                                                           | devDependency | updated | ^0.7.2 | ^0.7.3 |    |
+  | @savvy-web/commitlint                                                                                           | devDependency | updated | ^0.5.0 | ^0.5.1 |    |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.7.0 | ^0.7.1 |    |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.2.0 | ^1.2.1 |    |
+
 ## 0.6.2
 
 ### Bug Fixes
