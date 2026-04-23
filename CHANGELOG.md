@@ -1,5 +1,17 @@
 # @savvy-web/github-action-builder
 
+## 0.6.3
+
+### Dependencies
+
+* | [`ab0c9cc`](https://github.com/savvy-web/github-action-builder/commit/ab0c9cc7fa2c06eae13dc566a28210f8fd641a18) | Dependency    | Type    | Action  | From    | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :------ | :------ | -- |
+  | @savvy-web/changesets                                                                                           | devDependency | updated | ^0.7.4  | ^0.8.0  |    |
+  | @savvy-web/commitlint                                                                                           | devDependency | updated | ^0.5.2  | ^0.6.0  |    |
+  | @savvy-web/lint-staged                                                                                          | devDependency | updated | ^0.7.3  | ^0.8.0  |    |
+  | @savvy-web/rslib-builder                                                                                        | devDependency | updated | ^0.20.0 | ^0.20.1 |    |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.2.2  | ^1.3.0  |    |
+
 ## 0.6.2
 
 ### Bug Fixes
