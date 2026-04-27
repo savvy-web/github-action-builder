@@ -71,7 +71,7 @@
 		"effect": "catalog:silk",
 		"jiti": "^2.6.1",
 		"picocolors": "^1.1.1",
-		"yaml-effect": "^0.2.3"
+		"yaml-effect": "^0.4.0"
 	},
 	"devDependencies": {
 		"@savvy-web/changesets": "^0.8.0",
