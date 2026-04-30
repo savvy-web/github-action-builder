@@ -1,5 +1,13 @@
 # @savvy-web/github-action-builder
 
+## 0.6.4
+
+### Dependencies
+
+* | [`23e0968`](https://github.com/savvy-web/github-action-builder/commit/23e096898d0ded74db8539180668fe45f03cb949) | Dependency    | Type    | Action | From   | To |
+  | :-------------------------------------------------------------------------------------------------------------- | :------------ | :------ | :----- | :----- | -- |
+  | @savvy-web/vitest                                                                                               | devDependency | updated | ^1.3.0 | ^1.3.1 |    |
+
 ## 0.6.3
 
 ### Dependencies
