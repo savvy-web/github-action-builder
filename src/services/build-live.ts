@@ -127,7 +127,19 @@ function bundleEntry(
 							module: true,
 							distPath: { root: outputDir },
 							filename: { js: "[name].js" },
-							externals: [/^node:/, ...config.build.externals],
+							externals: [
+								// Externalize node: builtins with CommonJS require() semantics.
+								// Output is ESM (output.module), so a RegExp external would
+								// resolve with the default "module" type, making
+								// require("node:*") inside bundled CJS deps return an ESM
+								// namespace object. That breaks the TypeScript __importDefault
+								// interop helper and throws "instanceof is not callable" at
+								// runtime. "node-commonjs" preserves real require() semantics.
+								// See issue #79.
+								(data: { request?: string }): string | false =>
+									data.request?.startsWith("node:") ? `node-commonjs ${data.request}` : false,
+								...config.build.externals,
+							],
 							cleanDistPath: false,
 							minify: config.build.minify,
 							sourceMap: config.build.sourceMap ? { js: "source-map" as const } : false,
