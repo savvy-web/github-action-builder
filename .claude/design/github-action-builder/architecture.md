@@ -243,6 +243,7 @@ const BuildOptionsSchema = Schema.Struct({
   minify: Schema.optionalWith(Schema.Boolean, { default: () => true }),
   sourceMap: Schema.optionalWith(Schema.Boolean, { default: () => false }), // Off by default
   externals: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
+  ignore: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
   // target hardcoded to ES2024 internally (Node 24 = V8 12.x)
   // quiet removed (was ncc-specific)
 })
@@ -329,7 +330,8 @@ The output structure is **flat** - all files go directly in `dist/`.
 | ------ | ------- | ----------- |
 | `minify` | `true` | Minify output for smaller bundles |
 | `sourceMap` | `false` | Source maps disabled by default |
-| `externals` | `[]` | Additional packages to exclude (node: always external) |
+| `externals` | `[]` | Packages excluded from the bundle, expected to be available at runtime |
+| `ignore` | `[]` | Packages excluded from the bundle and replaced with a stub that throws if loaded at runtime |
 
 ### Persist-Local Defaults
 
@@ -385,7 +387,8 @@ export default defineConfig({
   build: {
     minify: true,             // Default: true
     sourceMap: false,         // Default: false (disabled for smaller bundles)
-    externals: [],            // Additional packages to exclude (node: always external)
+    externals: [],            // Packages excluded from bundle, available at runtime (node: always external)
+    ignore: [],               // Packages replaced with a throwing stub (takes precedence over externals)
   },
 
   // Validation rules
@@ -488,31 +491,44 @@ const BundleStatsSchema = Schema.Struct({
 
 ### Rsbuild Bundler Configuration
 
+When `build.ignore` is non-empty, `IGNORE_STUB_SOURCE` (a single `throw` statement) is written to the OS temp dir as a `.mjs` file before rsbuild runs. Each ignored specifier is mapped to that stub via `resolve.alias` using a `$`-suffixed key for exact-match aliasing, so rspack substitutes the stub in place of the real module.
+
 ```typescript
+// Stub written to tmpdir() when build.ignore is non-empty
+const IGNORE_STUB_SOURCE = `throw new Error("A module excluded via the build 'ignore' option was loaded at runtime.");\n`;
+
+// resolve.alias entries added when build.ignore is non-empty:
+// { "some-module$": "/tmp/github-action-builder-ignore-stub.mjs" }
+
 const rsbuildConfig = {
   source: { entry: { [entry.type]: entry.path } },
+  resolve: { alias: ignoreAlias },  // conditionally populated from build.ignore
   output: {
     target: "node",
-    module: true,                          // ESM output (experimental)
+    module: true,                   // ESM output (experimental)
     distPath: { root: outputDir },
     filename: { js: "[name].js" },
-    externals: [
-      // Force node: builtins to resolve as CJS so bundled CJS deps that call
-      // __importDefault(require("node:stream")) get real module exports, not
-      // an ESM namespace. Without this, instanceof checks on e.g. Stream throw
-      // "Right-hand side of 'instanceof' is not callable".
-      (data) =>
-        data.request?.startsWith("node:")
-          ? `node-commonjs ${data.request}`
-          : false,
-      ...config.build.externals,
-    ],
-    minify: config.build.minify,           // Default: true
-    sourceMap: config.build.sourceMap       // Default: false
-      ? { js: "source-map" } : false,
+    // A single function makes the whole externalization decision so it never
+    // depends on rspack's array fall-through. Previously, leading the array
+    // with a function caused rspack to stop consulting trailing string entries,
+    // so user-configured externals were bundled and hard-failed to resolve (#81).
+    externals: (data) => {
+      const request = data.request;
+      if (!request) return false;
+      // node: builtins: force CommonJS require() semantics so bundled CJS deps
+      // that call __importDefault(require("node:stream")) get real exports, not
+      // an ESM namespace. Prevents "instanceof is not callable" (#79).
+      if (request.startsWith("node:")) return `node-commonjs ${request}`;
+      // User externals: left as runtime imports. ignore takes precedence —
+      // a module in both lists is handled by resolve.alias, not externalized.
+      if (config.build.externals.includes(request) && !config.build.ignore.includes(request)) return request;
+      return false;
+    },
+    minify: config.build.minify,    // Default: true
+    sourceMap: config.build.sourceMap ? { js: "source-map" } : false,
   },
   performance: {
-    chunkSplit: { strategy: "all-in-one" }, // Single-file output
+    chunkSplit: { strategy: "all-in-one" },  // Single-file output
   },
 };
 ```
@@ -1059,6 +1075,8 @@ Resolved questions from initial design:
 | Output format | ESM (`output.module: true`) | Node 24 actions use `"type": "module"` |
 | Chunk strategy | `all-in-one` | GitHub Actions need single-file per entry |
 | `node:` external type | `node-commonjs` via function external | RegExp external with ESM output resolves builtins as ESM namespace; CJS deps doing `__importDefault(require("node:stream"))` then get a non-callable `.default`, breaking `instanceof`. Function external forces `createRequire(import.meta.url)("node:stream")` which returns real CJS exports. |
+| Externals array form (#81 regression) | Single function replaces function + string array | Leading an `externals` array with a function caused rspack to stop consulting trailing string entries; user-configured string externals were bundled instead of externalized. A single function that handles all cases (`node:` → `node-commonjs`, user strings → default, everything else → bundle) eliminates the fall-through dependency. |
+| `build.ignore` stub mechanism | Throwing `.mjs` stub written to `tmpdir()`, aliased via `resolve.alias` with `$` exact-match suffix | Ignored modules must be removed from the bundle without relying on them being available at runtime (unlike `externals`). A stub that throws gives a clear error message if a module is accidentally loaded. The `$` suffix prevents partial matches (e.g., `foo$` matches `foo` but not `foobar`). `ignore` takes precedence over `externals` — a module in both lists is stubbed. |
 
 ---
 
@@ -1097,11 +1115,16 @@ src/
 
 __test__/
 └── integration/
-    ├── cjs-node-interop.int.test.ts  # Regression test: builds fixture, asserts isStream=true
-    └── fixtures/cjs-node-interop/   # Fixture with action.yml, src/main.ts and hand-authored legacy-cjs-dep.cjs
+    ├── cjs-node-interop.int.test.ts   # Regression: builds fixture, asserts isStream=true
+    ├── string-externals.int.test.ts   # Regression: builds fixture with externals[], asserts module is external not bundled
+    ├── ignore-modules.int.test.ts     # E2E: builds fixture with ignore[], asserts stub throws at load time
+    └── fixtures/
+        ├── cjs-node-interop/          # Fixture with action.yml, src/main.ts and hand-authored legacy-cjs-dep.cjs
+        ├── string-externals/          # Fixture that configures externals to verify array fall-through fix (#81)
+        └── ignore-modules/            # Fixture that configures ignore to verify stub aliasing
 ```
 
-Integration tests (`*.int.test.ts`) are auto-discovered by `@savvy-web/vitest` as a `:int` project. The `cjs-node-interop` fixture exercises the `node-commonjs` external fix end-to-end: it builds via `GitHubAction.create()` with `skipValidation: true` and `persistLocal.enabled: false`, runs `dist/main.js` with Node, and asserts `isStream=true`.
+Integration tests (`*.int.test.ts`) are auto-discovered by `@savvy-web/vitest` as a `:int` project. Each builds its fixture via `GitHubAction.create()` with `skipValidation: true` and `persistLocal.enabled: false`, then runs `dist/main.js` with Node to assert runtime behavior. `cjs-node-interop` asserts `isStream=true` (the `node-commonjs` fix); `string-externals` asserts that user-configured externals are not bundled (the #81 regression fix); `ignore-modules` asserts that the stub throws a descriptive error when an ignored module is imported.
 
 ---
 

@@ -1,25 +1,17 @@
 # @savvy-web/github-action-builder
 
-A zero-config build tool for creating GitHub Actions from TypeScript source
-code. Bundles your action with [@rsbuild/core](https://github.com/web-infra-dev/rsbuild)
-(rspack-based), validates `action.yml` against GitHub's official schema, and
-outputs production-ready Node.js 24 actions.
+A zero-config build tool for creating GitHub Actions from TypeScript source code. Bundles your action with [@rsbuild/core](https://github.com/web-infra-dev/rsbuild) (rspack-based), validates `action.yml` against GitHub's official schema, and outputs production-ready Node.js 24 actions.
 
 ## Features
 
-- **Zero-config** - Auto-detects entry points from `src/main.ts`, `src/pre.ts`,
-  `src/post.ts`
-- **Node.js 24** - Builds modern ESM actions for the latest GitHub Actions
-  runtime
-- **Schema validation** - Validates `action.yml` against GitHub's official
-  metadata specification
-- **Single-file bundles** - All npm dependencies inlined via rsbuild, `node:`
-  builtins externalized, with tree-shaking support
-- **Local testing** - Auto-persists build output for testing with
-  [nektos/act](https://github.com/nektos/act)
+- **Zero-config** - Auto-detects entry points from `src/main.ts`, `src/pre.ts`, `src/post.ts`
+- **Node.js 24** - Builds modern ESM actions for the latest GitHub Actions runtime
+- **Schema validation** - Validates `action.yml` against GitHub's official metadata specification
+- **Single-file bundles** - All npm dependencies inlined via rsbuild; `node:` builtins externalized; user-configured `externals` and `ignore` options for optional or native modules
+- **Local testing** - Auto-persists build output for testing with [nektos/act](https://github.com/nektos/act)
 - **CI-aware** - Strict validation in CI, warnings-only locally
 
-## Quick Start
+## Quick start
 
 Create a new GitHub Action project with a single command:
 
@@ -30,8 +22,7 @@ npm install
 npm run build
 ```
 
-That's it! Your action is built and ready. The `init` command generates a
-complete project:
+That's it! Your action is built and ready. The `init` command generates a complete project:
 
 ```text
 my-action/
@@ -48,7 +39,7 @@ my-action/
 Edit `src/main.ts` with your action logic, then rebuild with `npm run build`.
 Your bundled action is in `dist/main.js`, ready to commit and use.
 
-## Basic Usage
+## Basic usage
 
 ### Initialize
 
@@ -78,7 +69,7 @@ npm run validate
 npx @savvy-web/github-action-builder validate
 ```
 
-## Project Structure
+## Project structure
 
 The builder expects this structure:
 
@@ -112,7 +103,7 @@ export default GitHubAction.create({
 });
 ```
 
-## action.yml Requirements
+## action.yml requirements
 
 Your `action.yml` must use Node.js 24:
 
@@ -149,7 +140,7 @@ if (result.success) {
 }
 ```
 
-## Shared TypeScript Configuration
+## Shared TypeScript configuration
 
 The package exports a base `tsconfig.json` for GitHub Action projects:
 
@@ -159,9 +150,7 @@ The package exports a base `tsconfig.json` for GitHub Action projects:
 }
 ```
 
-This provides sensible defaults for Node.js 24 ESM actions including strict
-mode, ES2022 target, and bundler module resolution. Override or extend as
-needed in your project's `tsconfig.json`.
+This provides sensible defaults for Node.js 24 ESM actions including strict mode, ES2022 target, and bundler module resolution. Override or extend as needed in your project's `tsconfig.json`.
 
 ## Requirements
 

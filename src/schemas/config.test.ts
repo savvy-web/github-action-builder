@@ -70,6 +70,18 @@ describe("BuildOptions Schema", () => {
 		});
 		expect(decoded.minify).toBe(false);
 	});
+
+	it("defaults ignore to an empty array", () => {
+		const options = Schema.decodeUnknownSync(BuildOptionsSchema)({});
+		expect(options.ignore).toEqual([]);
+	});
+
+	it("accepts an ignore list", () => {
+		const options = Schema.decodeUnknownSync(BuildOptionsSchema)({
+			ignore: ["libxmljs2"],
+		});
+		expect(options.ignore).toEqual(["libxmljs2"]);
+	});
 });
 
 describe("ValidationOptions Schema", () => {
@@ -137,6 +149,13 @@ describe("ConfigInput Schema", () => {
 		expect(decoded.entries?.main).toBe("custom.ts");
 		expect(decoded.entries?.pre).toBe("pre.ts");
 		expect(decoded.build?.minify).toBe(false);
+	});
+
+	it("accepts build.ignore", () => {
+		const input = Schema.decodeUnknownSync(ConfigInputSchema)({
+			build: { ignore: ["libxmljs2"] },
+		});
+		expect(input.build?.ignore).toEqual(["libxmljs2"]);
 	});
 });
 

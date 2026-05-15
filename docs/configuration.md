@@ -2,7 +2,7 @@
 
 This guide covers all configuration options for `@savvy-web/github-action-builder`.
 
-## Configuration File
+## Configuration file
 
 Create `action.config.ts` in your project root to customize the build process.
 The file is optional - the builder uses sensible defaults without it.
@@ -17,10 +17,9 @@ export default GitHubAction.create({
 });
 ```
 
-The `GitHubAction.create()` helper provides TypeScript autocomplete and validates
-your configuration at build time.
+The `GitHubAction.create()` helper provides TypeScript autocomplete and validates your configuration at build time.
 
-## Configuration Sections
+## Configuration sections
 
 ### entries
 
@@ -32,7 +31,7 @@ Configure entry point paths for your action.
 | `pre` | `string` | `undefined` | Pre-action hook (runs before main) |
 | `post` | `string` | `undefined` | Post-action hook (runs after main) |
 
-#### Custom Entry Points
+#### Custom entry points
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -46,7 +45,7 @@ export default GitHubAction.create({
 });
 ```
 
-#### Main Only (Default Behavior)
+#### Main only (default behavior)
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -59,10 +58,9 @@ export default GitHubAction.create({
 });
 ```
 
-#### Auto-Detection
+#### Auto-detection
 
-If you do not specify `pre` or `post` in your config, the builder automatically
-detects these files:
+If you do not specify `pre` or `post` in your config, the builder automatically detects these files:
 
 * `src/pre.ts` - included if exists
 * `src/post.ts` - included if exists
@@ -78,10 +76,11 @@ Configure how your action is bundled.
 | `minify` | `boolean` | `true` | Minify output for smaller bundles |
 | `target` | `string` | `"es2022"` | ECMAScript target version |
 | `sourceMap` | `boolean` | `false` | Generate source maps |
-| `externals` | `string[]` | `[]` | Packages to exclude from bundle |
+| `externals` | `string[]` | `[]` | Packages to leave out of the bundle; must be available at runtime |
+| `ignore` | `string[]` | `[]` | Packages to leave out of the bundle and replace with a stub that throws if loaded |
 | `quiet` | `boolean` | `false` | Suppress build output |
 
-#### Development Build with Source Maps
+#### Development build with source maps
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -94,7 +93,7 @@ export default GitHubAction.create({
 });
 ```
 
-#### Exclude Packages from Bundle
+#### Exclude packages from bundle (available at runtime)
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -106,7 +105,19 @@ export default GitHubAction.create({
 });
 ```
 
-#### Build Options Details
+#### Exclude packages from bundle (not available at runtime)
+
+```typescript
+import { GitHubAction } from "@savvy-web/github-action-builder";
+
+export default GitHubAction.create({
+  build: {
+    ignore: ["cpu-features", "bufferutil"],
+  },
+});
+```
+
+#### Build options details
 
 ##### minify
 
@@ -131,14 +142,11 @@ The ECMAScript target for the output. Valid values:
 * `"es2023"`
 * `"es2024"`
 
-The target affects which JavaScript features are used in the output. Since
-GitHub Actions runs Node.js 24, `es2022` or later is recommended.
+The target affects which JavaScript features are used in the output. Since GitHub Actions runs Node.js 24, `es2022` or later is recommended.
 
 ##### sourceMap
 
-When `true`, generates source map files alongside the bundled JavaScript. Source
-maps help with debugging by mapping minified code back to your original
-TypeScript source.
+When `true`, generates source map files alongside the bundled JavaScript. Source maps help with debugging by mapping minified code back to your original TypeScript source.
 
 Source maps are **disabled by default** because:
 
@@ -156,11 +164,7 @@ build: {
 
 ##### externals
 
-An array of package names to exclude from the bundle. Use this when:
-
-* A package cannot be bundled (native modules)
-* You want to reduce bundle size for packages that will be installed separately
-* Testing with mocked dependencies
+An array of package names to leave out of the bundle. The packages are not bundled into `dist/main.js` and must be available in the action's runtime environment (i.e., installed in the action's `node_modules`). Use this for packages that cannot be bundled or that you install alongside the action.
 
 ```typescript
 build: {
@@ -168,8 +172,26 @@ build: {
 }
 ```
 
-**Note:** External packages must be installed in the action's runtime
-environment, which is not typical for GitHub Actions. Use sparingly.
+**Note:** Relying on runtime-installed packages is not typical for GitHub Actions. Most actions should bundle everything. Use `externals` only when bundling is genuinely not an option. For optional transitive dependencies that the action never actually loads, use [`ignore`](#ignore) instead.
+
+##### ignore
+
+An array of package names to leave out of the bundle and replace with a stub that throws a descriptive error if the module is ever loaded at runtime. Use this for optional transitive dependencies — native modules or optional peer dependencies that the action's code guards with a `try/catch` and never exercises on the GitHub Actions runner.
+
+```typescript
+build: {
+  ignore: ["cpu-features", "bufferutil"],
+}
+```
+
+The difference from `externals`:
+
+| Option | Bundled? | Available at runtime? | What happens if loaded? |
+| --- | --- | --- | --- |
+| `externals` | No | Must be | Resolves normally |
+| `ignore` | No | No | Throws a descriptive error |
+
+If a module appears in both lists, `ignore` takes precedence — the stub is applied and the module is not externalized.
 
 ##### quiet
 
@@ -192,7 +214,7 @@ Configure validation behavior.
 | `maxBundleSize` | `string` | `undefined` | Maximum bundle size (e.g., "5mb") |
 | `strict` | `boolean` | `undefined` | Treat warnings as errors |
 
-#### Set Bundle Size Limit
+#### Set bundle size limit
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -205,7 +227,7 @@ export default GitHubAction.create({
 });
 ```
 
-#### Skip action.yml Validation
+#### Skip action.yml validation
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -217,7 +239,7 @@ export default GitHubAction.create({
 });
 ```
 
-#### Validation Options Details
+#### Validation options details
 
 ##### requireActionYml
 
@@ -265,8 +287,7 @@ validation: {
 
 ### persistLocal
 
-Configure automatic persistence of build output to a local action directory
-for testing with [nektos/act](https://github.com/nektos/act).
+Configure automatic persistence of build output to a local action directory for testing with [nektos/act](https://github.com/nektos/act).
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -274,14 +295,11 @@ for testing with [nektos/act](https://github.com/nektos/act).
 | `path` | `string` | `".github/actions/local"` | Output directory relative to project root |
 | `actTemplate` | `boolean` | `true` | Generate act boilerplate files if they don't exist |
 
-#### Default Behavior
+#### Default behavior
 
-With no configuration, `persistLocal` is enabled. After each build, the builder
-copies `action.yml` and `dist/` to `.github/actions/local/` and generates act
-template files (`.actrc` and `.github/workflows/act-test.yml`) if they do not
-already exist.
+With no configuration, `persistLocal` is enabled. After each build, the builder copies `action.yml` and `dist/` to `.github/actions/local/` and generates act template files (`.actrc` and `.github/workflows/act-test.yml`) if they do not already exist.
 
-#### Custom Output Path
+#### Custom output path
 
 ```typescript
 import { defineConfig } from "@savvy-web/github-action-builder";
@@ -293,7 +311,7 @@ export default defineConfig({
 });
 ```
 
-#### Disable Persist Local
+#### Disable persist local
 
 ```typescript
 import { defineConfig } from "@savvy-web/github-action-builder";
@@ -305,13 +323,11 @@ export default defineConfig({
 });
 ```
 
-#### Persist Local Options Details
+#### Persist local options details
 
 ##### enabled
 
-When `true` (default), the builder copies `action.yml` and the `dist/`
-directory to the local action path after every successful build. Uses hash-based
-comparison to skip unchanged files and removes stale files from the destination.
+When `true` (default), the builder copies `action.yml` and the `dist/` directory to the local action path after every successful build. Uses hash-based comparison to skip unchanged files and removes stale files from the destination.
 
 Disable to skip local persistence entirely:
 
@@ -321,8 +337,7 @@ persistLocal: {
 }
 ```
 
-You can also skip persistence for a single build using the `--no-persist` CLI
-flag without changing your configuration.
+You can also skip persistence for a single build using the `--no-persist` CLI flag without changing your configuration.
 
 ##### path
 
@@ -345,8 +360,7 @@ not already exist:
 * `.actrc` - Default act options
 * `.github/workflows/act-test.yml` - Minimal workflow for local testing
 
-Existing files are never overwritten. Set to `false` if you manage these files
-yourself:
+Existing files are never overwritten. Set to `false` if you manage these files yourself:
 
 ```typescript
 persistLocal: {
@@ -354,10 +368,9 @@ persistLocal: {
 }
 ```
 
-For a detailed guide on local testing with act, see
-[Local Testing](./local-testing.md).
+For a detailed guide on local testing with act, see [Local Testing](./local-testing.md).
 
-## Full Configuration Example
+## Full configuration example
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -376,6 +389,7 @@ export default GitHubAction.create({
     target: "es2022",
     sourceMap: false,
     externals: [],
+    ignore: [],
     quiet: false,
   },
 
@@ -395,7 +409,7 @@ export default GitHubAction.create({
 });
 ```
 
-## Zero Configuration
+## Zero configuration
 
 The builder works without any configuration file. These defaults are applied:
 
@@ -410,6 +424,7 @@ The builder works without any configuration file. These defaults are applied:
     target: "es2022",
     sourceMap: false,
     externals: [],
+    ignore: [],
     quiet: false,
   },
   validation: {
@@ -424,7 +439,7 @@ The builder works without any configuration file. These defaults are applied:
 }
 ```
 
-## Config File Location
+## Config file location
 
 The builder looks for configuration in this order:
 
@@ -433,11 +448,9 @@ The builder looks for configuration in this order:
 3. `action.config.js` in the current directory
 4. `action.config.mjs` in the current directory
 
-TypeScript config files (`.ts`) are loaded using
-[jiti](https://github.com/unjs/jiti), so they work in any environment including
-CI runners without a TypeScript loader registered.
+TypeScript config files (`.ts`) are loaded using [jiti](https://github.com/unjs/jiti), so they work in any environment including CI runners without a TypeScript loader registered.
 
-## Shared TypeScript Configuration
+## Shared TypeScript configuration
 
 The package exports a base `tsconfig.json` for GitHub Action projects:
 
@@ -452,12 +465,11 @@ This includes sensible defaults for Node.js 24 ESM actions:
 * `target`: ES2022
 * `module`: ESNext with bundler resolution
 * `strict`: enabled
-* Includes patterns for `src/`, `lib/`, `__test__/`, `types/`, and root-level
-  TypeScript files (covers `action.config.ts`)
+* Includes patterns for `src/`, `lib/`, `__test__/`, `types/`, and root-level TypeScript files (covers `action.config.ts`)
 
 Override any setting in your project's `tsconfig.json` as needed.
 
-## Programmatic Configuration
+## Programmatic configuration
 
 When using the programmatic API, pass configuration directly:
 
@@ -484,7 +496,7 @@ const action = GitHubAction.create({
 });
 ```
 
-## Related Documentation
+## Related documentation
 
 * [CLI Reference](./cli-reference.md) - Command-line options
 * [Getting Started](./getting-started.md) - Project setup
