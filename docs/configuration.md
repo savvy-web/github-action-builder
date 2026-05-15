@@ -193,6 +193,8 @@ The difference from `externals`:
 
 If a module appears in both lists, `ignore` takes precedence — the stub is applied and the module is not externalized.
 
+Matching is exact: `ignore: ["cpu-features"]` stubs `cpu-features` but not a subpath import such as `cpu-features/native`. If a dependency reaches an ignored module through a subpath, add that subpath specifier to the list as well.
+
 ##### quiet
 
 When `true`, suppresses non-error build output. Useful in CI pipelines where

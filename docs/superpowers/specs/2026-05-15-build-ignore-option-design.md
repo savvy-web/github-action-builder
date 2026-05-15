@@ -53,8 +53,8 @@ string array element matches the request exactly). `ignore: ["libxmljs2"]`
 matches `import "libxmljs2"` / `require("libxmljs2")` but not a deep import such
 as `libxmljs2/lib/foo`. Subpath matching is out of scope for this version.
 
-When `ignore` is empty (the default), the build behaves exactly as before — no
-`resolve.alias`, no stub written.
+When `ignore` is empty (the default), the build behaves exactly as before —
+`resolve.alias` is given no entries and no stub is written.
 
 ## Bundler mechanism
 

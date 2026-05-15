@@ -3,9 +3,9 @@
  * BuildService Layer implementation.
  *
  */
-import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { createRsbuild } from "@rsbuild/core";
 import { Effect, Layer } from "effect";
 
@@ -124,15 +124,25 @@ function bundleEntry(
 		const outputDir = resolve(cwd, "dist");
 
 		// Modules listed in `build.ignore` are aliased to a throwing stub so
-		// they are neither bundled nor resolved against node_modules. See
+		// they are neither bundled nor resolved against node_modules. The stub
+		// lives in a private per-build temp directory created with mkdtemp, so
+		// a predictable shared path cannot be pre-created or symlinked by
+		// another process. See
 		// docs/superpowers/specs/2026-05-15-build-ignore-option-design.md.
-		const stubPath = resolve(tmpdir(), "github-action-builder-ignore-stub.mjs");
+		const externalsSet = new Set(config.build.externals);
+		const ignoreSet = new Set(config.build.ignore);
 		const ignoreAlias: Record<string, string> = {};
-		for (const moduleName of config.build.ignore) {
-			ignoreAlias[`${moduleName}$`] = stubPath;
-		}
+		let stubDir: string | undefined;
 		if (config.build.ignore.length > 0) {
+			stubDir = yield* Effect.try({
+				try: () => mkdtempSync(join(tmpdir(), "github-action-builder-")),
+				catch: (error) => new WriteError({ path: tmpdir(), cause: error }),
+			});
+			const stubPath = resolve(stubDir, "ignore-stub.mjs");
 			yield* writeFile(stubPath, IGNORE_STUB_SOURCE);
+			for (const moduleName of config.build.ignore) {
+				ignoreAlias[`${moduleName}$`] = stubPath;
+			}
 		}
 
 		// createRsbuild returns a Promise<RsbuildInstance>
@@ -171,7 +181,7 @@ function bundleEntry(
 								// imports with the default external type.
 								// `ignore` takes precedence over `externals`: a module in
 								// both lists is stubbed via resolve.alias, not externalized.
-								if (config.build.externals.includes(request) && !config.build.ignore.includes(request)) {
+								if (externalsSet.has(request) && !ignoreSet.has(request)) {
 									return request;
 								}
 								return false;
@@ -210,6 +220,12 @@ function bundleEntry(
 					cause: new Error(`rsbuild close() failed: ${error}`),
 				}),
 		});
+
+		// Remove the private stub directory now the bundle has been written.
+		if (stubDir !== undefined) {
+			const dir = stubDir;
+			yield* Effect.ignore(Effect.try(() => rmSync(dir, { recursive: true, force: true })));
+		}
 
 		const outputPath = resolve(outputDir, `${entry.type}.js`);
 		const size = yield* Effect.try({
