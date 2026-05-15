@@ -1,19 +1,15 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Status
 
-**GitHub Action Builder** - CLI tool and library for building Node.js 24
-GitHub Actions using `@rsbuild/core` (rspack-based). Validates `action.yml`
-against GitHub schema and bundles TypeScript into production-ready JavaScript.
+**GitHub Action Builder** - CLI tool and library for building Node.js 24 GitHub Actions using `@rsbuild/core` (rspack-based). Validates `action.yml` against GitHub schema and bundles TypeScript into production-ready JavaScript.
 
 **For detailed architecture:**
--> `@./.claude/design/github-action-builder/architecture.md`
+→ `@./.claude/design/github-action-builder/architecture.md`
 
-Load when working on service layer design, build pipeline implementation,
-or making architectural decisions.
+Load when working on service layer design, build pipeline implementation, or making architectural decisions.
 
 ## Quick Reference
 
@@ -47,8 +43,10 @@ pnpm run build:prod        # Build production/npm output only
 ### Running a Single Test
 
 ```bash
-pnpm vitest run src/errors.test.ts      # Specific file
-pnpm vitest run -t "defineConfig"       # Pattern match
+pnpm vitest run src/errors.test.ts                              # Specific unit test file
+pnpm vitest run -t "defineConfig"                               # Pattern match
+pnpm vitest run --project :int                                  # All integration tests
+pnpm vitest run __test__/integration/cjs-node-interop.int.test.ts  # Specific integration test
 ```
 
 ## Architecture
@@ -64,11 +62,11 @@ pnpm vitest run -t "defineConfig"       # Pattern match
 
 Uses ConfigService, ValidationService, and BuildService composed via AppLayer.
 
--> `@./.claude/design/github-action-builder/architecture.md#service-layer`
+→ `@./.claude/design/github-action-builder/architecture.md#service-layer`
 
 ### Build Pipeline
 
-Uses Rslib with dual output:
+Uses `@rsbuild/core` (rspack-based) with dual output:
 
 1. `dist/dev/` - Development build with source maps
 2. `dist/npm/` - Production build for npm publishing
@@ -95,7 +93,9 @@ Turbo tasks define dependencies: `typecheck` depends on `build` completing first
 
 * **Framework**: Vitest with v8 coverage
 * **Pool**: Uses forks (not threads) for Effect-TS compatibility
-* **Config**: `vitest.config.ts` supports project-based filtering
+* **Config**: `vitest.config.ts` supports project-based filtering; coverage level is `none` (targets set to `strict`)
+* **Unit tests**: `src/**/*.test.ts`
+* **Integration tests**: `__test__/integration/**/*.int.test.ts` — auto-discovered by `@savvy-web/vitest` as the `:int` project
 
 For Effect-TS testing patterns, see the architecture design doc.
 

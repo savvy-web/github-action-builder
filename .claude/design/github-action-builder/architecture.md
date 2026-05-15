@@ -4,8 +4,8 @@ type: architecture
 status: current
 completeness: 95
 created: 2026-01-29
-updated: 2026-03-19
-last-synced: 2026-03-19
+updated: 2026-05-15
+last-synced: 2026-05-15
 authors:
   - C. Spencer Beggs
 tags:
@@ -496,7 +496,18 @@ const rsbuildConfig = {
     module: true,                          // ESM output (experimental)
     distPath: { root: outputDir },
     filename: { js: "[name].js" },
-    externals: [/^node:/, ...config.build.externals],
+    externals: [
+      // Force node: builtins to resolve as CJS so bundled CJS deps that call
+      // __importDefault(require("node:stream")) get real module exports, not
+      // an ESM namespace. Without this, instanceof checks on e.g. Stream throw
+      // "Right-hand side of 'instanceof' is not callable".
+      (data) => {
+        if (data.request?.startsWith("node:")) {
+          return { externalType: "node-commonjs" };
+        }
+      },
+      ...config.build.externals,
+    ],
     minify: config.build.minify,           // Default: true
     sourceMap: config.build.sourceMap       // Default: false
       ? { js: "source-map" } : false,
@@ -963,9 +974,8 @@ Each error carries contextual data:
 
 ### Why `@rsbuild/core`?
 
-- Clean ESM output without `eval("require")` hacks (ncc's webpack 4 runtime
-  broke Node 24's strict ESM format detection)
-- Proper CJS-to-ESM interop via rspack (replaces ncc's broken webpack 4 approach)
+- Clean ESM output without `eval("require")` hacks (ncc's webpack 4 runtime broke Node 24's strict ESM format detection)
+- Proper CJS-to-ESM interop via rspack (replaces ncc's broken webpack 4 approach); `node:` builtins are forced to `node-commonjs` external type so bundled CJS deps that call `__importDefault(require("node:stream"))` receive real CJS module exports rather than an ESM namespace — without this, `instanceof` checks on Node built-in classes throw at runtime
 - Tree-shaking via rspack dead code elimination
 - Already in the Savvy Web ecosystem (`@savvy-web/rslib-builder` uses rspack)
 - Programmatic API: `createRsbuild()` + `.build()` for clean integration
@@ -1049,6 +1059,7 @@ Resolved questions from initial design:
 | ES target | ES2024 (hardcoded) | Node 24 = V8 12.x, no config needed |
 | Output format | ESM (`output.module: true`) | Node 24 actions use `"type": "module"` |
 | Chunk strategy | `all-in-one` | GitHub Actions need single-file per entry |
+| `node:` external type | `node-commonjs` via function external | RegExp external with ESM output resolves builtins as ESM namespace; CJS deps doing `__importDefault(require("node:stream"))` then get a non-callable `.default`, breaking `instanceof`. Function external forces `createRequire(import.meta.url)("node:stream")` which returns real CJS exports. |
 
 ---
 
@@ -1070,7 +1081,7 @@ src/
 │   ├── validation.ts        # ValidationService definition
 │   ├── validation-live.ts   # ValidationService implementation
 │   ├── build.ts             # BuildService definition
-│   ├── build-live.ts        # BuildService implementation
+│   ├── build-live.ts        # BuildService implementation (node: externals fix here)
 │   ├── persist-local.ts     # PersistLocalService definition
 │   ├── persist-local-live.ts # PersistLocalService implementation
 │   ├── persist-local.test.ts # PersistLocalService tests
@@ -1084,7 +1095,14 @@ src/
         ├── build.ts         # Build command handler
         ├── validate.ts      # Validate command handler
         └── init.ts          # Init command handler
+
+__test__/
+└── integration/
+    ├── cjs-node-interop.int.test.ts  # Regression test: builds fixture, asserts isStream=true
+    └── fixtures/cjs-node-interop/   # Fixture with action.yml, src/main.ts and hand-authored legacy-cjs-dep.cjs
 ```
+
+Integration tests (`*.int.test.ts`) are auto-discovered by `@savvy-web/vitest` as a `:int` project. The `cjs-node-interop` fixture exercises the `node-commonjs` external fix end-to-end: it builds via `GitHubAction.create()` with `skipValidation: true` and `persistLocal.enabled: false`, runs `dist/main.js` with Node, and asserts `isStream=true`.
 
 ---
 
