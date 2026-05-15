@@ -501,11 +501,10 @@ const rsbuildConfig = {
       // __importDefault(require("node:stream")) get real module exports, not
       // an ESM namespace. Without this, instanceof checks on e.g. Stream throw
       // "Right-hand side of 'instanceof' is not callable".
-      (data) => {
-        if (data.request?.startsWith("node:")) {
-          return { externalType: "node-commonjs" };
-        }
-      },
+      (data) =>
+        data.request?.startsWith("node:")
+          ? `node-commonjs ${data.request}`
+          : false,
       ...config.build.externals,
     ],
     minify: config.build.minify,           // Default: true
