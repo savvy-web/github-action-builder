@@ -1,5 +1,15 @@
 # @savvy-web/github-action-builder
 
+## 0.7.0
+
+### Features
+
+* [`aa802d6`](https://github.com/savvy-web/github-action-builder/commit/aa802d6eb34544a38a5753238fb1f954109aa8c8) Added `build.ignore` — a `string[]` option listing modules to exclude from the bundle and replace with a throwing stub. Use it for optional transitive dependencies the action never exercises (for example, native modules pulled in as optional plugins by a dependency). Unlike `build.externals` (packages excluded because they are available at runtime), `build.ignore` packages are absent at runtime; code that wraps their `require()` calls in `try/catch` correctly detects them as unavailable.
+
+### Bug Fixes
+
+* [`aa802d6`](https://github.com/savvy-web/github-action-builder/commit/aa802d6eb34544a38a5753238fb1f954109aa8c8) Fixed user-configured `build.externals` entries not being honored after the v0.6.4 `node:` interop fix. A change to the rspack externals config structure had caused the trailing string entries to be silently ignored, so configured package names were bundled and hard-failed to resolve instead of being externalized.
+
 ## 0.6.4
 
 ### Bug Fixes
