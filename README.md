@@ -1,5 +1,9 @@
 # @savvy-web/github-action-builder
 
+[![npm](https://img.shields.io/npm/v/@savvy-web%2Fgithub-action-builder?label=npm&color=cb3837)](https://www.npmjs.com/package/@savvy-web/github-action-builder)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4caf50.svg)](https://opensource.org/licenses/MIT)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-5fa04e.svg)](https://nodejs.org/)
+
 A zero-config build tool for creating GitHub Actions from TypeScript source code. Bundles your action with [@rsbuild/core](https://github.com/web-infra-dev/rsbuild) (rspack-based), validates `action.yml` against GitHub's official schema, and outputs production-ready Node.js 24 actions.
 
 ## Features
@@ -118,12 +122,12 @@ runs:
 
 ## Documentation
 
-- [Getting Started](./docs/getting-started.md) - Installation and first build
-- [Configuration](./docs/configuration.md) - All configuration options
-- [Local Testing](./docs/local-testing.md) - Testing with nektos/act
-- [CLI Reference](./docs/cli-reference.md) - Complete command reference
-- [Architecture](./docs/architecture.md) - How it works internally
-- [Troubleshooting](./docs/troubleshooting.md) - Common issues and solutions
+- [Getting started](./docs/01-getting-started.md) - Installation and first build
+- [Configuration](./docs/02-configuration.md) - All configuration options
+- [Local testing](./docs/03-local-testing.md) - Testing with nektos/act
+- [CLI reference](./docs/04-cli-reference.md) - Complete command reference
+- [Architecture](./docs/05-architecture.md) - How it works internally
+- [Troubleshooting](./docs/06-troubleshooting.md) - Common issues and solutions
 
 ## Programmatic API
 
@@ -137,6 +141,7 @@ const result = await action.build();
 
 if (result.success) {
   console.log(`Built ${result.build?.entries.length} entry points`);
+  // e.g. "Built 3 entry points"
 }
 ```
 

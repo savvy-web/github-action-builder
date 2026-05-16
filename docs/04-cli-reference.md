@@ -1,4 +1,4 @@
-# CLI Reference
+# CLI reference
 
 Complete reference for the `github-action-builder` command-line interface.
 
@@ -67,7 +67,7 @@ Build without persisting locally:
 github-action-builder build --no-persist
 ```
 
-**Build Process:**
+**Build process:**
 
 The build command:
 
@@ -88,15 +88,15 @@ Validating...
 Building...
 
 Build Summary:
-  main: 89.2 KB (1234ms) -> dist/main.js
-  post: 12.5 KB (567ms) -> dist/post.js
+  main: <size> (<time>) -> dist/main.js
+  post: <size> (<time>) -> dist/post.js
 
-Total time: 1801ms
+Total time: <total>
 
 Build completed successfully!
 ```
 
-**Exit Codes:**
+**Exit codes:**
 
 | Code | Meaning |
 | --- | --- |
@@ -134,7 +134,7 @@ Validate with custom config:
 github-action-builder validate --config ./my-config.ts
 ```
 
-**What Gets Validated:**
+**What gets validated:**
 
 The validate command checks:
 
@@ -142,7 +142,7 @@ The validate command checks:
    * Config file syntax (if provided)
    * Schema validation for all options
 
-2. **Entry Points**
+2. **Entry points**
    * `src/main.ts` exists (required)
    * `src/pre.ts` exists (if configured)
    * `src/post.ts` exists (if configured)
@@ -153,7 +153,7 @@ The validate command checks:
    * Matches GitHub's action metadata schema
    * `runs.using` is set to `node24`
 
-**Validation Output:**
+**Validation output:**
 
 Example validation output:
 
@@ -186,7 +186,7 @@ Validation Results:
 Validation failed with 2 errors
 ```
 
-**Exit Codes:**
+**Exit codes:**
 
 | Code | Meaning |
 | --- | --- |
@@ -232,7 +232,7 @@ Overwrite existing files:
 github-action-builder init my-action --force
 ```
 
-**Generated Files:**
+**Generated files:**
 
 The init command creates a complete project structure:
 
@@ -293,7 +293,7 @@ export default GitHubAction.create({
 });
 ```
 
-**Init Output:**
+**Init output:**
 
 ```text
 Created my-action/
@@ -311,14 +311,14 @@ Next steps:
   npm run build
 ```
 
-**Exit Codes:**
+**Exit codes:**
 
 | Code | Meaning |
 | --- | --- |
 | `0` | Project created successfully |
 | `1` | Directory exists (use `--force`) |
 
-## Global Options
+## Global options
 
 These options work with all commands:
 
@@ -340,7 +340,7 @@ github-action-builder build --help
 github-action-builder --version
 ```
 
-## Environment Variables
+## Environment variables
 
 The CLI respects these environment variables:
 
@@ -349,7 +349,7 @@ The CLI respects these environment variables:
 | `CI=true` | Enables strict mode (warnings become errors) |
 | `GITHUB_ACTIONS=true` | Enables strict mode |
 
-### CI Detection
+### CI detection
 
 In CI environments, the builder automatically enables strict mode:
 
@@ -368,7 +368,7 @@ export default defineConfig({
 });
 ```
 
-## Using with npm Scripts
+## Using with npm scripts
 
 Add scripts to your `package.json`:
 
@@ -399,8 +399,8 @@ npx @savvy-web/github-action-builder validate
 npx @savvy-web/github-action-builder init
 ```
 
-## Related Documentation
+## Related documentation
 
-* [Configuration](./configuration.md) - All configuration options
-* [Getting Started](./getting-started.md) - Project setup
-* [Troubleshooting](./troubleshooting.md) - Common issues
+* [Configuration](./02-configuration.md) - All configuration options
+* [Getting started](./01-getting-started.md) - Project setup
+* [Troubleshooting](./06-troubleshooting.md) - Common issues

@@ -47,7 +47,7 @@ The builder uses Effect-TS for:
 * **Resource safety** - File handles and processes are properly managed
 * **Composability** - Complex workflows built from simple operations
 
-## Service Layer
+## Service layer
 
 ### ConfigService
 
@@ -127,7 +127,7 @@ interface BuildService {
 * Produces clean ESM output without eval("require") hacks
 * Supports tree-shaking via rspack, `node:` builtins externalized
 
-## Layer Composition
+## Layer composition
 
 Services are composed using Effect Layers:
 
@@ -151,7 +151,7 @@ export const AppLayer = Layer.mergeAll(
 
 The `AppLayer` provides all services needed to run the CLI or programmatic API.
 
-## Build Pipeline
+## Build pipeline
 
 ```text
 +----------+    +----------+    +----------+    +----------+
@@ -164,14 +164,14 @@ ConfigService   ConfigService  ValidationService  BuildService
   .load()       .detectEntries()  .validate()      .build()
 ```
 
-### Stage 1: Load Configuration
+### Stage 1: Load configuration
 
 1. Check for `action.config.ts` or use `--config` path
 2. Dynamically import the TypeScript config
 3. Validate against `ConfigSchema`
 4. Apply defaults for missing options
 
-### Stage 2: Detect Entry Points
+### Stage 2: Detect entry points
 
 1. Check for required `src/main.ts`
 2. Check for optional `src/pre.ts` and `src/post.ts`
@@ -193,7 +193,7 @@ ConfigService   ConfigService  ValidationService  BuildService
 4. Create `dist/package.json`
 5. Report statistics
 
-## Error Handling
+## Error handling
 
 All errors use Effect's `Data.TaggedError` pattern:
 
@@ -216,7 +216,7 @@ Effect.gen(function* () {
 );
 ```
 
-### Error Categories
+### Error categories
 
 **Config Errors:**
 
@@ -240,7 +240,7 @@ Effect.gen(function* () {
 * `CleanError` - Failed to clean output directory
 * `BuildFailed` - Overall build process failed
 
-## Schema Validation
+## Schema validation
 
 All schemas use `@effect/schema`:
 
@@ -265,7 +265,7 @@ const ActionYml = Schema.Struct({
 
 ## Programmatic API
 
-### GitHubAction Class
+### GitHubAction class
 
 The `GitHubAction` class wraps Effect services for non-Effect consumers:
 
@@ -294,7 +294,7 @@ async build(): Promise<GitHubActionBuildResult> {
 }
 ```
 
-### Using Services Directly
+### Using services directly
 
 Effect consumers can use services directly:
 
@@ -315,7 +315,7 @@ const program = Effect.gen(function* () {
 Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
 ```
 
-### Custom Layers
+### Custom layers
 
 Inject custom implementations for testing:
 
@@ -332,7 +332,7 @@ const action = GitHubAction.create({
 });
 ```
 
-## File Structure
+## File structure
 
 ```text
 src/
@@ -360,7 +360,7 @@ src/
         +-- init.ts          # Init command handler
 ```
 
-## Design Decisions
+## Design decisions
 
 | Decision | Rationale |
 | --- | --- |
@@ -373,9 +373,9 @@ src/
 | Flat output structure | Simple, no nested directories |
 | CI-aware strict mode | Fast dev feedback, strict CI gates |
 
-## Extending the Builder
+## Extending the builder
 
-### Adding a New Service
+### Adding a new service
 
 1. Define the service interface in `services/`:
 
@@ -406,7 +406,7 @@ export const AppLayer = Layer.mergeAll(
 );
 ```
 
-### Adding a New Command
+### Adding a new command
 
 1. Create command in `cli/commands/`:
 
@@ -428,8 +428,8 @@ const rootCommand = Command.make("github-action-builder").pipe(
 );
 ```
 
-## Related Documentation
+## Related documentation
 
-* [Configuration](./configuration.md) - Configuration options
-* [CLI Reference](./cli-reference.md) - Command reference
-* [Troubleshooting](./troubleshooting.md) - Common issues
+* [Configuration](./02-configuration.md) - Configuration options
+* [CLI reference](./04-cli-reference.md) - Command reference
+* [Troubleshooting](./06-troubleshooting.md) - Common issues

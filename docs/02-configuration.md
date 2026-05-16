@@ -370,7 +370,7 @@ persistLocal: {
 }
 ```
 
-For a detailed guide on local testing with act, see [Local Testing](./local-testing.md).
+For a detailed guide on local testing with act, see [Local testing](./03-local-testing.md).
 
 ## Full configuration example
 
@@ -500,6 +500,6 @@ const action = GitHubAction.create({
 
 ## Related documentation
 
-* [CLI Reference](./cli-reference.md) - Command-line options
-* [Getting Started](./getting-started.md) - Project setup
-* [Troubleshooting](./troubleshooting.md) - Common issues
+* [CLI reference](./04-cli-reference.md) - Command-line options
+* [Getting started](./01-getting-started.md) - Project setup
+* [Troubleshooting](./06-troubleshooting.md) - Common issues

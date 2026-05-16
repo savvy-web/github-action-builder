@@ -2,7 +2,7 @@
 
 Solutions to common issues when using `@savvy-web/github-action-builder`.
 
-## Validation Errors
+## Validation errors
 
 ### "runs.using must be 'node24'"
 
@@ -22,8 +22,7 @@ runs:
   main: "dist/main.js"
 ```
 
-This builder only supports Node.js 24 actions. If you need to support older
-Node.js versions, use a different build tool.
+This builder only supports Node.js 24 actions. If you need to support older Node.js versions, use a different build tool.
 
 ### "Required entry not found: src/main.ts"
 
@@ -129,7 +128,7 @@ for required fields:
 - `runs.using` (required, must be `node24`)
 - `runs.main` (required)
 
-## Build Errors
+## Build errors
 
 ### "Bundle failed"
 
@@ -235,7 +234,7 @@ Clean error: ENOTEMPTY: directory not empty
 
 3. Run the build again
 
-## Configuration Errors
+## Configuration errors
 
 ### "Config not found"
 
@@ -271,8 +270,7 @@ Config invalid: /build/target: Expected one of "es2020" | "es2021" | ...
 
 **Cause:** Your configuration has invalid values.
 
-**Solution:** Check the [Configuration](./configuration.md) guide for valid
-options. Common issues:
+**Solution:** Check the [Configuration](./02-configuration.md) guide for valid options. Common issues:
 
 - Invalid `target` value (must be `es2020`-`es2024`)
 - Wrong type (e.g., string instead of boolean)
@@ -315,7 +313,7 @@ in the Node.js runtime. CI environments typically do not have one.
 which uses [jiti](https://github.com/unjs/jiti) to load TypeScript config files
 without requiring an external loader.
 
-## CI vs Local Differences
+## CI vs local differences
 
 ### "Build fails in CI but works locally"
 
@@ -356,7 +354,7 @@ Locally:
 2. Use a lockfile (`package-lock.json`, `pnpm-lock.yaml`)
 3. Run `npm ci` instead of `npm install` in CI
 
-## Node.js 24 Compatibility
+## Node.js 24 compatibility
 
 ### "Node.js version not supported"
 
@@ -424,7 +422,7 @@ SyntaxError: Cannot use import statement outside a module
    }
    ```
 
-## Getting Help
+## Getting help
 
 If your issue is not covered here:
 
@@ -437,8 +435,8 @@ If your issue is not covered here:
    - Node.js version (`node --version`)
    - Package version (`npm list @savvy-web/github-action-builder`)
 
-## Related Documentation
+## Related documentation
 
-- [Configuration](./configuration.md) - All configuration options
-- [CLI Reference](./cli-reference.md) - Command reference
-- [Getting Started](./getting-started.md) - Project setup
+- [Configuration](./02-configuration.md) - All configuration options
+- [CLI reference](./04-cli-reference.md) - Command reference
+- [Getting started](./01-getting-started.md) - Project setup
