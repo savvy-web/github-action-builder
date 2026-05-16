@@ -1,6 +1,6 @@
 # Getting started
 
-This guide walks you through setting up your first GitHub Action with `@savvy-web/github-action-builder`.
+Set up your first GitHub Action with `@savvy-web/github-action-builder`.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ This guide walks you through setting up your first GitHub Action with `@savvy-we
 
 ## Quick start
 
-Create a new GitHub Action project with a single command:
+Scaffold a new GitHub Action project, then build it:
 
 ```bash
 npx @savvy-web/github-action-builder init my-action
@@ -19,7 +19,7 @@ npm install
 npm run build
 ```
 
-This creates a complete, ready-to-build project. Edit `src/main.ts` with your action logic and run `npm run build` again.
+The `init` command generates a project that builds without further setup. Put your action logic in `src/main.ts` and run `npm run build` again.
 
 ## Generated project structure
 
@@ -202,11 +202,7 @@ dist/
 └── package.json  # ESM module marker { "type": "module" }
 ```
 
-Each bundled file:
-
-- Contains all your code and dependencies in a single file
-- Is minified by default for smaller size
-- Runs on Node.js 24 in GitHub Actions
+Each bundled file holds your code and its dependencies in one file, minified by default, ready to run on Node.js 24 in GitHub Actions.
 
 ## Validation and type checking
 
@@ -235,21 +231,13 @@ npm run typecheck
 
 ### CI vs local behavior
 
-The builder behaves differently based on environment:
+The builder treats validation issues differently depending on where it runs.
 
-**Local development:**
+**Local development:** validation issues show as warnings and the build continues, so you keep working while you fix them.
 
-- Validation issues show as warnings
-- Build continues even with warnings
-- Faster feedback during development
+**CI environment (GitHub Actions):** validation issues become errors and the build fails, so a broken action never gets past the pipeline.
 
-**CI environment (GitHub Actions):**
-
-- Validation issues become errors
-- Build fails on any issue
-- Ensures quality gates in CI pipelines
-
-The CI environment is detected via `CI=true` or `GITHUB_ACTIONS=true` environment variables.
+The builder treats itself as running in CI when `CI=true` or `GITHUB_ACTIONS=true` is set.
 
 ## Using your action
 

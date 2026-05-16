@@ -4,7 +4,7 @@ This guide explains how to test your GitHub Action locally using the `persistLoc
 
 ## Why local testing?
 
-GitHub's `node24` runtime prevents repositories from running their own compiled `pre.js` scripts when referencing the action with `uses: ./`. The runner expects the action to live in a subdirectory under `.github/actions/` rather than in the repository root. The `persistLocal` feature solves this by automatically copying your build output to a local action directory where act can find and execute it.
+GitHub's `node24` runtime will not run a repository's own compiled `pre.js` scripts when the action is referenced with `uses: ./`. The runner expects the action to live in a subdirectory under `.github/actions/`, not in the repository root. `persistLocal` works around this: after every build it copies your output to a local action directory where act can find it.
 
 ## What persistLocal does
 
@@ -14,7 +14,7 @@ After each successful build, the builder:
 2. Copies the entire `dist/` directory to `.github/actions/local/dist/`
 3. Generates act template files if they do not already exist
 
-The result is a self-contained action directory that act can reference directly.
+The result is a complete action directory that act can reference directly.
 
 ```text
 .github/actions/local/
@@ -26,15 +26,15 @@ The result is a self-contained action directory that act can reference directly.
     └── package.json
 ```
 
-## Smart sync
+## How files are synced
 
-The builder uses hash-based comparison when syncing files:
+The builder compares file hashes before it writes anything:
 
 * **Changed files** are copied to the destination
-* **Unchanged files** are skipped (no unnecessary writes)
-* **Stale files** in the destination that no longer exist in the source are removed
+* **Unchanged files** are skipped — no write happens
+* **Stale files** that exist in the destination but no longer exist in the source are removed
 
-This keeps the local action directory in sync with your build output without redundant file operations.
+So the local action directory always matches your latest build, and a build that changed nothing copies nothing.
 
 ## Getting started with act
 
@@ -108,7 +108,7 @@ jobs:
           example-input: "test value"
 ```
 
-The builder never overwrites existing template files, so your customizations are preserved.
+The builder never overwrites a template file that already exists, so it leaves your edits alone.
 
 ## Configuration
 
@@ -144,7 +144,7 @@ Use `--no-persist` to skip the persist step for a single build:
 github-action-builder build --no-persist
 ```
 
-This is useful when you want a fast build without updating the local action directory, for example during rapid iteration on source code.
+Use it while iterating on source code, when you want a quick build and do not need the local action directory refreshed.
 
 ### Typical development workflow
 

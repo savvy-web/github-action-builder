@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Solutions to common issues when using `@savvy-web/github-action-builder`.
+Common errors from `@savvy-web/github-action-builder`, what causes them and how to fix them.
 
 ## Validation errors
 
@@ -22,7 +22,7 @@ runs:
   main: "dist/main.js"
 ```
 
-This builder only supports Node.js 24 actions. If you need to support older Node.js versions, use a different build tool.
+This builder targets Node.js 24 actions only. For older Node.js versions, use a different build tool.
 
 ### "Required entry not found: src/main.ts"
 
@@ -305,13 +305,9 @@ Config load failed: Cannot find module '@savvy-web/github-action-builder'
 ConfigLoadFailed: Unknown file extension ".ts" for /path/to/action.config.ts
 ```
 
-**Cause:** This occurred in versions prior to 0.6.0 where `action.config.ts`
-was loaded via native `import()`, which requires a TypeScript loader registered
-in the Node.js runtime. CI environments typically do not have one.
+**Cause:** Versions prior to 0.6.0 loaded `action.config.ts` through native `import()`. That needs a TypeScript loader registered in the Node.js runtime, and CI environments usually do not have one.
 
-**Solution:** Upgrade to `@savvy-web/github-action-builder@0.6.0` or later,
-which uses [jiti](https://github.com/unjs/jiti) to load TypeScript config files
-without requiring an external loader.
+**Solution:** Upgrade to `@savvy-web/github-action-builder@0.6.0` or later. Recent versions load TypeScript config files with [jiti](https://github.com/unjs/jiti), so no external loader is needed.
 
 ## CI vs local differences
 
@@ -319,15 +315,7 @@ without requiring an external loader.
 
 **Cause:** CI uses strict mode by default.
 
-**Explanation:** In CI environments (`CI=true` or `GITHUB_ACTIONS=true`):
-
-- Warnings become errors
-- Build fails on any issue
-
-Locally:
-
-- Warnings are displayed but build continues
-- Faster iteration during development
+**Explanation:** In CI environments (`CI=true` or `GITHUB_ACTIONS=true`) warnings become errors and the build fails on any issue. Locally, warnings are printed but the build continues, so you can keep iterating.
 
 **Solution:**
 
@@ -426,9 +414,8 @@ SyntaxError: Cannot use import statement outside a module
 
 If your issue is not covered here:
 
-1. Check the [GitHub Issues](https://github.com/savvy-web/github-action-builder/issues)
-   for similar problems
-2. Create a new issue with:
+1. Search the [GitHub Issues](https://github.com/savvy-web/github-action-builder/issues) for a similar problem
+2. If you find nothing, open a new issue with:
    - Error message (full output)
    - Your `action.config.ts`
    - Your `action.yml`
@@ -437,6 +424,6 @@ If your issue is not covered here:
 
 ## Related documentation
 
-- [Configuration](./02-configuration.md) - All configuration options
-- [CLI reference](./04-cli-reference.md) - Command reference
-- [Getting started](./01-getting-started.md) - Project setup
+- [Configuration](./02-configuration.md) - Every configuration option
+- [CLI reference](./04-cli-reference.md) - Every command and flag
+- [Getting started](./01-getting-started.md) - Project setup from scratch

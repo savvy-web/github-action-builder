@@ -1,12 +1,10 @@
 # Architecture
 
-This guide explains how `@savvy-web/github-action-builder` works internally.
-It is intended for advanced users who want to understand the design, extend the
-tool, or contribute to development.
+This guide explains how `@savvy-web/github-action-builder` works internally. Read it if you want to extend the tool or contribute to it.
 
 ## Overview
 
-The builder uses a layered architecture based on Effect-TS:
+The builder has three layers, built on Effect-TS:
 
 ```text
 +---------------------------------------------------------------+
@@ -39,19 +37,19 @@ The builder uses a layered architecture based on Effect-TS:
 
 ## Why Effect-TS?
 
-The builder uses Effect-TS for:
+Effect-TS earns its place here for a few concrete reasons:
 
-* **Type-safe error handling** - Errors are tracked in the type system
-* **Dependency injection** - Services are composed via Layers
-* **Testability** - Mock services can be injected for testing
-* **Resource safety** - File handles and processes are properly managed
-* **Composability** - Complex workflows built from simple operations
+* **Type-safe error handling** - every failure mode shows up in the type signature, so you cannot forget to handle one
+* **Dependency injection** - services compose through Layers instead of imports
+* **Testability** - swap in a mock service by providing a different Layer
+* **Resource safety** - file handles and child processes close even when a build throws
+* **Composability** - the build pipeline is a few small Effects chained together
 
 ## Service layer
 
 ### ConfigService
 
-Handles configuration loading and entry point detection.
+Loads configuration and finds entry points.
 
 ```typescript
 interface ConfigService {
@@ -101,7 +99,7 @@ interface ValidationService {
 
 ### BuildService
 
-Bundles TypeScript entry points with `@rsbuild/core` (rspack-based).
+Bundles TypeScript entry points with `@rsbuild/core`, which runs on rspack.
 
 ```typescript
 interface BuildService {
@@ -121,15 +119,15 @@ interface BuildService {
 
 **Key behaviors:**
 
-* Cleans `dist/` directory before building (configurable)
+* Cleans `dist/` before building, unless you turn that off in config
 * Bundles each detected entry point with rsbuild (rspack)
 * Writes `dist/package.json` with `{ "type": "module" }`
-* Produces clean ESM output without eval("require") hacks
-* Supports tree-shaking via rspack, `node:` builtins externalized
+* Emits plain ESM, with no `eval("require")` hacks
+* Tree-shakes through rspack and externalizes `node:` builtins
 
 ## Layer composition
 
-Services are composed using Effect Layers:
+Effect Layers wire the services together:
 
 ```typescript
 // Individual service layers
@@ -149,7 +147,7 @@ export const AppLayer = Layer.mergeAll(
 );
 ```
 
-The `AppLayer` provides all services needed to run the CLI or programmatic API.
+`AppLayer` carries every service the CLI and the programmatic API need.
 
 ## Build pipeline
 
@@ -195,7 +193,7 @@ ConfigService   ConfigService  ValidationService  BuildService
 
 ## Error handling
 
-All errors use Effect's `Data.TaggedError` pattern:
+Every error is a `Data.TaggedError` subclass:
 
 ```typescript
 // Define error types
@@ -242,7 +240,7 @@ Effect.gen(function* () {
 
 ## Schema validation
 
-All schemas use `@effect/schema`:
+Schemas are defined with `@effect/schema`:
 
 ```typescript
 const ConfigSchema = Schema.Struct({
@@ -267,7 +265,7 @@ const ActionYml = Schema.Struct({
 
 ### GitHubAction class
 
-The `GitHubAction` class wraps Effect services for non-Effect consumers:
+If your code does not use Effect, the `GitHubAction` class wraps the services behind plain Promises:
 
 ```typescript
 class GitHubAction {
@@ -282,7 +280,7 @@ class GitHubAction {
 }
 ```
 
-It uses `ManagedRuntime` to execute Effects as Promises:
+A `ManagedRuntime` runs each Effect and hands back a Promise:
 
 ```typescript
 async build(): Promise<GitHubActionBuildResult> {
@@ -296,7 +294,7 @@ async build(): Promise<GitHubActionBuildResult> {
 
 ### Using services directly
 
-Effect consumers can use services directly:
+If your code already uses Effect, skip the wrapper and pull the services straight from the context:
 
 ```typescript
 import { Effect } from "effect";
@@ -317,7 +315,7 @@ Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
 
 ### Custom layers
 
-Inject custom implementations for testing:
+To test against a fake build, pass your own Layer:
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";

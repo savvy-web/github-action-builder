@@ -69,7 +69,7 @@ github-action-builder build --no-persist
 
 **Build process:**
 
-The build command:
+`build` runs four steps in order:
 
 1. Loads configuration from `action.config.ts` (or defaults)
 2. Validates the project (unless `--no-validate`)
@@ -136,7 +136,7 @@ github-action-builder validate --config ./my-config.ts
 
 **What gets validated:**
 
-The validate command checks:
+`validate` checks three things:
 
 1. **Configuration**
    * Config file syntax (if provided)
@@ -195,7 +195,7 @@ Validation failed with 2 errors
 
 ## github-action-builder init
 
-Create a new GitHub Action project with all required files.
+Create a new GitHub Action project, including every file the action needs to build.
 
 **Usage:**
 
@@ -220,8 +220,8 @@ github-action-builder init <action-name> [options]
 Create a new action project:
 
 ```bash
-npx @savvy-web/github-action-builder init my-awesome-action
-cd my-awesome-action
+npx @savvy-web/github-action-builder init my-action
+cd my-action
 npm install
 npm run build
 ```
@@ -234,7 +234,7 @@ github-action-builder init my-action --force
 
 **Generated files:**
 
-The init command creates a complete project structure:
+`init` writes this project structure:
 
 ```text
 my-action/
@@ -342,7 +342,7 @@ github-action-builder --version
 
 ## Environment variables
 
-The CLI respects these environment variables:
+Two environment variables change CLI behavior:
 
 | Variable | Effect |
 | --- | --- |
@@ -351,13 +351,9 @@ The CLI respects these environment variables:
 
 ### CI detection
 
-In CI environments, the builder automatically enables strict mode:
+When `CI` or `GITHUB_ACTIONS` is set, the builder switches on strict mode: validation warnings are treated as errors and the build fails on any issue. This stops a marginal action.yml from shipping just because no human watched the log.
 
-* Validation warnings become errors
-* Build fails on any issue
-* Ensures quality gates in CI pipelines
-
-Override with the `strict` configuration option:
+To opt out, set the `strict` configuration option:
 
 ```typescript
 // action.config.ts
@@ -370,7 +366,7 @@ export default defineConfig({
 
 ## Using with npm scripts
 
-Add scripts to your `package.json`:
+Wire the commands into `package.json`:
 
 ```json
 {

@@ -4,12 +4,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-4caf50.svg)](https://opensource.org/licenses/MIT)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-5fa04e.svg)](https://nodejs.org/)
 
-A zero-config build tool for creating GitHub Actions from TypeScript source code. Bundles your action with [@rsbuild/core](https://github.com/web-infra-dev/rsbuild) (rspack-based), validates `action.yml` against GitHub's official schema, and outputs production-ready Node.js 24 actions.
+Build a GitHub Action from TypeScript source without writing build config. The builder bundles your code with [@rsbuild/core](https://github.com/web-infra-dev/rsbuild) (rspack under the hood) and checks `action.yml` against GitHub's published metadata schema. The output is a single Node.js 24 file you commit to your repo.
 
 ## Features
 
-- **Zero-config** - Auto-detects entry points from `src/main.ts`, `src/pre.ts`, `src/post.ts`
-- **Node.js 24** - Builds modern ESM actions for the latest GitHub Actions runtime
+- **No build config required** - Picks up entry points from `src/main.ts`, `src/pre.ts`, `src/post.ts` on its own
+- **Node.js 24** - Emits ESM actions that run on the `node24` GitHub Actions runtime
 - **Schema validation** - Validates `action.yml` against GitHub's official metadata specification
 - **Single-file bundles** - All npm dependencies inlined via rsbuild; `node:` builtins externalized; user-configured `externals` and `ignore` options for optional or native modules
 - **Local testing** - Auto-persists build output for testing with [nektos/act](https://github.com/nektos/act)
@@ -17,7 +17,7 @@ A zero-config build tool for creating GitHub Actions from TypeScript source code
 
 ## Quick start
 
-Create a new GitHub Action project with a single command:
+Scaffold a new GitHub Action project, then build it:
 
 ```bash
 npx @savvy-web/github-action-builder init my-action
@@ -26,7 +26,7 @@ npm install
 npm run build
 ```
 
-That's it! Your action is built and ready. The `init` command generates a complete project:
+The `init` command lays down the project:
 
 ```text
 my-action/
@@ -40,8 +40,7 @@ my-action/
 └── tsconfig.json    # TypeScript configuration
 ```
 
-Edit `src/main.ts` with your action logic, then rebuild with `npm run build`.
-Your bundled action is in `dist/main.js`, ready to commit and use.
+Put your action logic in `src/main.ts` and run `npm run build` again. The bundled action lands at `dist/main.js` — commit that file to your repo.
 
 ## Basic usage
 
@@ -155,7 +154,7 @@ The package exports a base `tsconfig.json` for GitHub Action projects:
 }
 ```
 
-This provides sensible defaults for Node.js 24 ESM actions including strict mode, ES2022 target, and bundler module resolution. Override or extend as needed in your project's `tsconfig.json`.
+It sets up Node.js 24 ESM actions with strict mode, an ES2022 target and bundler module resolution. Override any of it in your own `tsconfig.json`.
 
 ## Requirements
 
