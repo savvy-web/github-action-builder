@@ -1,7 +1,6 @@
-# Getting Started
+# Getting started
 
-This guide walks you through setting up your first GitHub Action with
-`@savvy-web/github-action-builder`.
+Set up your first GitHub Action with `@savvy-web/github-action-builder`.
 
 ## Prerequisites
 
@@ -9,9 +8,9 @@ This guide walks you through setting up your first GitHub Action with
 - **npm**, **pnpm**, or **yarn**
 - A GitHub repository for your action
 
-## Quick Start
+## Quick start
 
-Create a new GitHub Action project with a single command:
+Scaffold a new GitHub Action project, then build it:
 
 ```bash
 npx @savvy-web/github-action-builder init my-action
@@ -20,10 +19,9 @@ npm install
 npm run build
 ```
 
-This creates a complete, ready-to-build project. Edit `src/main.ts` with your
-action logic and run `npm run build` again.
+The `init` command generates a project that builds without further setup. Put your action logic in `src/main.ts` and run `npm run build` again.
 
-## Generated Project Structure
+## Generated project structure
 
 The `init` command creates this structure:
 
@@ -39,7 +37,7 @@ my-action/
 └── tsconfig.json    # TypeScript configuration
 ```
 
-## Understanding the Generated Files
+## Understanding the generated files
 
 ### action.config.ts
 
@@ -105,10 +103,7 @@ The generated `tsconfig.json` extends the shared base configuration:
 }
 ```
 
-This provides ES2022 target, strict mode, bundler module resolution, and
-includes patterns for `src/`, `lib/`, `__test__/`, and root-level TypeScript
-files like `action.config.ts`. You can override any setting in your project's
-`tsconfig.json`.
+This provides ES2022 target, strict mode, bundler module resolution, and includes patterns for `src/`, `lib/`, `__test__/`, and root-level TypeScript files like `action.config.ts`. You can override any setting in your project's `tsconfig.json`.
 
 ### src/main.ts
 
@@ -137,9 +132,9 @@ async function run(): Promise<void> {
 run();
 ```
 
-## Alternative Installation Methods
+## Alternative installation methods
 
-### Global Installation
+### Global installation
 
 Install globally to use the `github-action-builder` command anywhere:
 
@@ -147,7 +142,7 @@ Install globally to use the `github-action-builder` command anywhere:
 npm install -g @savvy-web/github-action-builder
 ```
 
-### Project Installation
+### Project installation
 
 Install as a dev dependency (already included in generated projects):
 
@@ -164,9 +159,9 @@ npx @savvy-web/github-action-builder build
 npx @savvy-web/github-action-builder validate
 ```
 
-## Building Your Action
+## Building your action
 
-### First Build
+### First build
 
 Run the build command:
 
@@ -186,16 +181,16 @@ Validating...
 Building...
 
 Build Summary:
-  ✓ main: 474.7 KB (909ms) → dist/main.js
-  ✓ pre: 474.6 KB (632ms) → dist/pre.js
-  ✓ post: 474.6 KB (561ms) → dist/post.js
+  ✓ main: <size> (<time>) → dist/main.js
+  ✓ pre:  <size> (<time>) → dist/pre.js
+  ✓ post: <size> (<time>) → dist/post.js
 
-Total time: 2102ms
+Total time: <total>
 
 Build completed successfully!
 ```
 
-### Understanding the Output
+### Understanding the output
 
 After building, your `dist/` directory contains:
 
@@ -207,15 +202,11 @@ dist/
 └── package.json  # ESM module marker { "type": "module" }
 ```
 
-Each bundled file:
+Each bundled file holds your code and its dependencies in one file, minified by default, ready to run on Node.js 24 in GitHub Actions.
 
-- Contains all your code and dependencies in a single file
-- Is minified by default for smaller size
-- Runs on Node.js 24 in GitHub Actions
+## Validation and type checking
 
-## Validation and Type Checking
-
-### Validate Configuration
+### Validate configuration
 
 Check your `action.yml` and configuration without building:
 
@@ -230,7 +221,7 @@ This verifies:
 - `runs.using` is set to `node24`
 - Required entry points exist
 
-### Type Check
+### Type check
 
 Run TypeScript type checking:
 
@@ -238,28 +229,19 @@ Run TypeScript type checking:
 npm run typecheck
 ```
 
-### CI vs Local Behavior
+### CI vs local behavior
 
-The builder behaves differently based on environment:
+The builder treats validation issues differently depending on where it runs.
 
-**Local development:**
+**Local development:** validation issues show as warnings and the build continues, so you keep working while you fix them.
 
-- Validation issues show as warnings
-- Build continues even with warnings
-- Faster feedback during development
+**CI environment (GitHub Actions):** validation issues become errors and the build fails, so a broken action never gets past the pipeline.
 
-**CI environment (GitHub Actions):**
+The builder treats itself as running in CI when `CI=true` or `GITHUB_ACTIONS=true` is set.
 
-- Validation issues become errors
-- Build fails on any issue
-- Ensures quality gates in CI pipelines
+## Using your action
 
-The CI environment is detected via `CI=true` or `GITHUB_ACTIONS=true` environment
-variables.
-
-## Using Your Action
-
-### Commit the dist Directory
+### Commit the dist directory
 
 GitHub Actions runs the bundled code directly, so commit your `dist/` folder:
 
@@ -269,7 +251,7 @@ git commit -m "Build action"
 git push
 ```
 
-### Reference in Workflows
+### Reference in workflows
 
 Use your action in a workflow:
 
@@ -300,8 +282,8 @@ To publish on the GitHub Marketplace:
 3. Follow GitHub's
    [publishing guide](https://docs.github.com/en/actions/creating-actions/publishing-actions-in-github-marketplace)
 
-## Next Steps
+## Next steps
 
-- [Configuration](./configuration.md) - Customize build options
-- [CLI Reference](./cli-reference.md) - All available commands
-- [Troubleshooting](./troubleshooting.md) - Common issues and solutions
+- [Configuration](./02-configuration.md) - Customize build options
+- [CLI reference](./04-cli-reference.md) - All available commands
+- [Troubleshooting](./06-troubleshooting.md) - Common issues and solutions

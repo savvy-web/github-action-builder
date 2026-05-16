@@ -1,18 +1,12 @@
-# Local Testing
+# Local testing
 
-This guide explains how to test your GitHub Action locally using the
-`persistLocal` feature and [nektos/act](https://github.com/nektos/act).
+This guide explains how to test your GitHub Action locally using the `persistLocal` feature and [nektos/act](https://github.com/nektos/act).
 
-## Why Local Testing?
+## Why local testing?
 
-GitHub's `node24` runtime prevents repositories from running their own compiled
-`pre.js` scripts when referencing the action with `uses: ./`. The runner
-expects the action to live in a subdirectory under `.github/actions/` rather
-than in the repository root. The `persistLocal` feature solves this by
-automatically copying your build output to a local action directory where act
-can find and execute it.
+GitHub's `node24` runtime will not run a repository's own compiled `pre.js` scripts when the action is referenced with `uses: ./`. The runner expects the action to live in a subdirectory under `.github/actions/`, not in the repository root. `persistLocal` works around this: after every build it copies your output to a local action directory where act can find it.
 
-## What persistLocal Does
+## What persistLocal does
 
 After each successful build, the builder:
 
@@ -20,7 +14,7 @@ After each successful build, the builder:
 2. Copies the entire `dist/` directory to `.github/actions/local/dist/`
 3. Generates act template files if they do not already exist
 
-The result is a self-contained action directory that act can reference directly.
+The result is a complete action directory that act can reference directly.
 
 ```text
 .github/actions/local/
@@ -32,19 +26,17 @@ The result is a self-contained action directory that act can reference directly.
     └── package.json
 ```
 
-## Smart Sync
+## How files are synced
 
-The builder uses hash-based comparison when syncing files:
+The builder compares file hashes before it writes anything:
 
 * **Changed files** are copied to the destination
-* **Unchanged files** are skipped (no unnecessary writes)
-* **Stale files** in the destination that no longer exist in the source are
-  removed
+* **Unchanged files** are skipped — no write happens
+* **Stale files** that exist in the destination but no longer exist in the source are removed
 
-This keeps the local action directory in sync with your build output without
-redundant file operations.
+So the local action directory always matches your latest build, and a build that changed nothing copies nothing.
 
-## Getting Started with act
+## Getting started with act
 
 ### Prerequisites
 
@@ -57,7 +49,7 @@ brew install act
 # Other platforms: see https://nektosact.com/installation/
 ```
 
-### First Run
+### First run
 
 Build your action and run it locally:
 
@@ -98,10 +90,9 @@ jobs:
 
 This workflow references your local action directory so act can execute it.
 
-### Customizing the Test Workflow
+### Customizing the test workflow
 
-The generated `act-test.yml` is a minimal starting point. Edit it to match your
-action's inputs and test scenarios:
+The generated `act-test.yml` is a minimal starting point. Edit it to match your action's inputs and test scenarios:
 
 ```yaml
 name: Local Test
@@ -117,8 +108,7 @@ jobs:
           example-input: "test value"
 ```
 
-The builder never overwrites existing template files, so your customizations
-are preserved.
+The builder never overwrites a template file that already exists, so it leaves your edits alone.
 
 ## Configuration
 
@@ -142,11 +132,11 @@ export default defineConfig({
 | `path` | `string` | `".github/actions/local"` | Output directory relative to project root |
 | `actTemplate` | `boolean` | `true` | Generate act boilerplate files if missing |
 
-For full details on each option, see [Configuration](./configuration.md).
+For full details on each option, see [Configuration](./02-configuration.md).
 
-## CLI Usage
+## CLI usage
 
-### Skip Persistence
+### Skip persistence
 
 Use `--no-persist` to skip the persist step for a single build:
 
@@ -154,10 +144,9 @@ Use `--no-persist` to skip the persist step for a single build:
 github-action-builder build --no-persist
 ```
 
-This is useful when you want a fast build without updating the local action
-directory, for example during rapid iteration on source code.
+Use it while iterating on source code, when you want a quick build and do not need the local action directory refreshed.
 
-### Typical Development Workflow
+### Typical development workflow
 
 ```bash
 # Edit source code
@@ -174,8 +163,7 @@ act
 
 ## Programmatic API
 
-When using the programmatic API, the build result includes a `persistLocal`
-field with details about the persist operation:
+When using the programmatic API, the build result includes a `persistLocal` field with details about the persist operation:
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -187,6 +175,9 @@ if (result.success && result.persistLocal) {
   console.log(`Output: ${result.persistLocal.outputPath}`);
   console.log(`Files copied: ${result.persistLocal.filesCopied}`);
   console.log(`Files skipped: ${result.persistLocal.filesSkipped}`);
+  // Output: /path/to/project/.github/actions/local
+  // Files copied: <count of new or changed files>
+  // Files skipped: <count of unchanged files>
 }
 ```
 
@@ -203,8 +194,7 @@ The `persistLocal` result contains:
 
 ## Disabling persistLocal
 
-To disable local persistence entirely, set `enabled` to `false` in your
-configuration:
+To disable local persistence entirely, set `enabled` to `false` in your configuration:
 
 ```typescript
 import { defineConfig } from "@savvy-web/github-action-builder";
@@ -216,13 +206,11 @@ export default defineConfig({
 });
 ```
 
-When disabled, the builder skips the persist step completely and does not
-generate any template files.
+When disabled, the builder skips the persist step completely and does not generate any template files.
 
-## Git Ignore
+## Git ignore
 
-You may want to add the local action directory and act configuration to your
-`.gitignore`:
+You may want to add the local action directory and act configuration to your `.gitignore`:
 
 ```text
 # Local testing
@@ -230,12 +218,11 @@ You may want to add the local action directory and act configuration to your
 .actrc
 ```
 
-Alternatively, commit the local action directory if you want CI to be able to
-reference it directly.
+Alternatively, commit the local action directory if you want CI to be able to reference it directly.
 
-## Related Documentation
+## Related documentation
 
-* [Configuration](./configuration.md) - All configuration options
-* [CLI Reference](./cli-reference.md) - Command reference
-* [Getting Started](./getting-started.md) - Project setup
-* [Troubleshooting](./troubleshooting.md) - Common issues
+* [Configuration](./02-configuration.md) - All configuration options
+* [CLI reference](./04-cli-reference.md) - Command reference
+* [Getting started](./01-getting-started.md) - Project setup
+* [Troubleshooting](./06-troubleshooting.md) - Common issues

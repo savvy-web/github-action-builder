@@ -60,6 +60,8 @@ export const BuildOptionsSchema = Schema.Struct({
 	sourceMap: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 	/** Packages to exclude from the bundle (in addition to node: builtins). Defaults to []. */
 	externals: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
+	/** Packages to exclude from the bundle and replace with a stub that throws if loaded at runtime. Use for optional transitive dependencies the action never exercises (e.g. native modules). Defaults to []. */
+	ignore: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
 });
 
 /**
@@ -153,6 +155,7 @@ export const ConfigInputSchema = Schema.Struct({
 			minify: Schema.optional(Schema.Boolean),
 			sourceMap: Schema.optional(Schema.Boolean),
 			externals: Schema.optional(Schema.Array(Schema.String)),
+			ignore: Schema.optional(Schema.Array(Schema.String)),
 		}),
 	),
 	validation: Schema.optional(
@@ -253,6 +256,7 @@ export type Config = typeof ConfigSchema.Type;
  *     minify: true,
  *     sourceMap: true,
  *     externals: ["@aws-sdk/client-s3"],
+ *     ignore: ["libxmljs2"],
  *   },
  *   validation: {
  *     requireActionYml: true,

@@ -1,12 +1,10 @@
 # Architecture
 
-This guide explains how `@savvy-web/github-action-builder` works internally.
-It is intended for advanced users who want to understand the design, extend the
-tool, or contribute to development.
+This guide explains how `@savvy-web/github-action-builder` works internally. Read it if you want to extend the tool or contribute to it.
 
 ## Overview
 
-The builder uses a layered architecture based on Effect-TS:
+The builder has three layers, built on Effect-TS:
 
 ```text
 +---------------------------------------------------------------+
@@ -39,19 +37,19 @@ The builder uses a layered architecture based on Effect-TS:
 
 ## Why Effect-TS?
 
-The builder uses Effect-TS for:
+Effect-TS earns its place here for a few concrete reasons:
 
-* **Type-safe error handling** - Errors are tracked in the type system
-* **Dependency injection** - Services are composed via Layers
-* **Testability** - Mock services can be injected for testing
-* **Resource safety** - File handles and processes are properly managed
-* **Composability** - Complex workflows built from simple operations
+* **Type-safe error handling** - every failure mode shows up in the type signature, so you cannot forget to handle one
+* **Dependency injection** - services compose through Layers instead of imports
+* **Testability** - swap in a mock service by providing a different Layer
+* **Resource safety** - file handles and child processes close even when a build throws
+* **Composability** - the build pipeline is a few small Effects chained together
 
-## Service Layer
+## Service layer
 
 ### ConfigService
 
-Handles configuration loading and entry point detection.
+Loads configuration and finds entry points.
 
 ```typescript
 interface ConfigService {
@@ -101,7 +99,7 @@ interface ValidationService {
 
 ### BuildService
 
-Bundles TypeScript entry points with `@rsbuild/core` (rspack-based).
+Bundles TypeScript entry points with `@rsbuild/core`, which runs on rspack.
 
 ```typescript
 interface BuildService {
@@ -121,15 +119,15 @@ interface BuildService {
 
 **Key behaviors:**
 
-* Cleans `dist/` directory before building (configurable)
+* Cleans `dist/` before building, unless you turn that off in config
 * Bundles each detected entry point with rsbuild (rspack)
 * Writes `dist/package.json` with `{ "type": "module" }`
-* Produces clean ESM output without eval("require") hacks
-* Supports tree-shaking via rspack, `node:` builtins externalized
+* Emits plain ESM, with no `eval("require")` hacks
+* Tree-shakes through rspack and externalizes `node:` builtins
 
-## Layer Composition
+## Layer composition
 
-Services are composed using Effect Layers:
+Effect Layers wire the services together:
 
 ```typescript
 // Individual service layers
@@ -149,9 +147,9 @@ export const AppLayer = Layer.mergeAll(
 );
 ```
 
-The `AppLayer` provides all services needed to run the CLI or programmatic API.
+`AppLayer` carries every service the CLI and the programmatic API need.
 
-## Build Pipeline
+## Build pipeline
 
 ```text
 +----------+    +----------+    +----------+    +----------+
@@ -164,14 +162,14 @@ ConfigService   ConfigService  ValidationService  BuildService
   .load()       .detectEntries()  .validate()      .build()
 ```
 
-### Stage 1: Load Configuration
+### Stage 1: Load configuration
 
 1. Check for `action.config.ts` or use `--config` path
 2. Dynamically import the TypeScript config
 3. Validate against `ConfigSchema`
 4. Apply defaults for missing options
 
-### Stage 2: Detect Entry Points
+### Stage 2: Detect entry points
 
 1. Check for required `src/main.ts`
 2. Check for optional `src/pre.ts` and `src/post.ts`
@@ -193,9 +191,9 @@ ConfigService   ConfigService  ValidationService  BuildService
 4. Create `dist/package.json`
 5. Report statistics
 
-## Error Handling
+## Error handling
 
-All errors use Effect's `Data.TaggedError` pattern:
+Every error is a `Data.TaggedError` subclass:
 
 ```typescript
 // Define error types
@@ -216,7 +214,7 @@ Effect.gen(function* () {
 );
 ```
 
-### Error Categories
+### Error categories
 
 **Config Errors:**
 
@@ -240,9 +238,9 @@ Effect.gen(function* () {
 * `CleanError` - Failed to clean output directory
 * `BuildFailed` - Overall build process failed
 
-## Schema Validation
+## Schema validation
 
-All schemas use `@effect/schema`:
+Schemas are defined with `@effect/schema`:
 
 ```typescript
 const ConfigSchema = Schema.Struct({
@@ -265,9 +263,9 @@ const ActionYml = Schema.Struct({
 
 ## Programmatic API
 
-### GitHubAction Class
+### GitHubAction class
 
-The `GitHubAction` class wraps Effect services for non-Effect consumers:
+If your code does not use Effect, the `GitHubAction` class wraps the services behind plain Promises:
 
 ```typescript
 class GitHubAction {
@@ -282,7 +280,7 @@ class GitHubAction {
 }
 ```
 
-It uses `ManagedRuntime` to execute Effects as Promises:
+A `ManagedRuntime` runs each Effect and hands back a Promise:
 
 ```typescript
 async build(): Promise<GitHubActionBuildResult> {
@@ -294,9 +292,9 @@ async build(): Promise<GitHubActionBuildResult> {
 }
 ```
 
-### Using Services Directly
+### Using services directly
 
-Effect consumers can use services directly:
+If your code already uses Effect, skip the wrapper and pull the services straight from the context:
 
 ```typescript
 import { Effect } from "effect";
@@ -315,9 +313,9 @@ const program = Effect.gen(function* () {
 Effect.runPromise(program.pipe(Effect.provide(AppLayer)));
 ```
 
-### Custom Layers
+### Custom layers
 
-Inject custom implementations for testing:
+To test against a fake build, pass your own Layer:
 
 ```typescript
 import { GitHubAction } from "@savvy-web/github-action-builder";
@@ -332,7 +330,7 @@ const action = GitHubAction.create({
 });
 ```
 
-## File Structure
+## File structure
 
 ```text
 src/
@@ -360,7 +358,7 @@ src/
         +-- init.ts          # Init command handler
 ```
 
-## Design Decisions
+## Design decisions
 
 | Decision | Rationale |
 | --- | --- |
@@ -373,9 +371,9 @@ src/
 | Flat output structure | Simple, no nested directories |
 | CI-aware strict mode | Fast dev feedback, strict CI gates |
 
-## Extending the Builder
+## Extending the builder
 
-### Adding a New Service
+### Adding a new service
 
 1. Define the service interface in `services/`:
 
@@ -406,7 +404,7 @@ export const AppLayer = Layer.mergeAll(
 );
 ```
 
-### Adding a New Command
+### Adding a new command
 
 1. Create command in `cli/commands/`:
 
@@ -428,8 +426,8 @@ const rootCommand = Command.make("github-action-builder").pipe(
 );
 ```
 
-## Related Documentation
+## Related documentation
 
-* [Configuration](./configuration.md) - Configuration options
-* [CLI Reference](./cli-reference.md) - Command reference
-* [Troubleshooting](./troubleshooting.md) - Common issues
+* [Configuration](./02-configuration.md) - Configuration options
+* [CLI reference](./04-cli-reference.md) - Command reference
+* [Troubleshooting](./06-troubleshooting.md) - Common issues

@@ -3,8 +3,9 @@
  * BuildService Layer implementation.
  *
  */
-import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { createRsbuild } from "@rsbuild/core";
 import { Effect, Layer } from "effect";
 
@@ -14,6 +15,12 @@ import type { BuildResult, BuildRunnerOptions, BundleResult } from "./build.js";
 import { BuildService } from "./build.js";
 import type { DetectedEntry } from "./config.js";
 import { ConfigService } from "./config.js";
+
+/**
+ * Source of the stub module that replaces packages listed in `build.ignore`.
+ * It is bundled in place of the real module and throws if ever loaded.
+ */
+const IGNORE_STUB_SOURCE = `throw new Error("A module excluded via the build 'ignore' option was loaded at runtime.");\n`;
 
 /**
  * Format bytes as a human-readable string.
@@ -116,30 +123,69 @@ function bundleEntry(
 		const startTime = Date.now();
 		const outputDir = resolve(cwd, "dist");
 
+		// Modules listed in `build.ignore` are aliased to a throwing stub so
+		// they are neither bundled nor resolved against node_modules. The stub
+		// lives in a private per-build temp directory created with mkdtemp, so
+		// a predictable shared path cannot be pre-created or symlinked by
+		// another process. See
+		// docs/superpowers/specs/2026-05-15-build-ignore-option-design.md.
+		const externalsSet = new Set(config.build.externals);
+		const ignoreSet = new Set(config.build.ignore);
+		const ignoreAlias: Record<string, string> = {};
+		let stubDir: string | undefined;
+		if (config.build.ignore.length > 0) {
+			stubDir = yield* Effect.try({
+				try: () => mkdtempSync(join(tmpdir(), "github-action-builder-")),
+				catch: (error) => new WriteError({ path: tmpdir(), cause: error }),
+			});
+			const stubPath = resolve(stubDir, "ignore-stub.mjs");
+			yield* writeFile(stubPath, IGNORE_STUB_SOURCE);
+			for (const moduleName of config.build.ignore) {
+				ignoreAlias[`${moduleName}$`] = stubPath;
+			}
+		}
+
 		// createRsbuild returns a Promise<RsbuildInstance>
 		const rsbuild = yield* Effect.tryPromise({
 			try: () =>
 				createRsbuild({
 					rsbuildConfig: {
 						source: { entry: { [entry.type]: entry.path } },
+						resolve: { alias: ignoreAlias },
 						output: {
 							target: "node",
 							module: true,
 							distPath: { root: outputDir },
 							filename: { js: "[name].js" },
-							externals: [
-								// Externalize node: builtins with CommonJS require() semantics.
-								// Output is ESM (output.module), so a RegExp external would
-								// resolve with the default "module" type, making
-								// require("node:*") inside bundled CJS deps return an ESM
-								// namespace object. That breaks the TypeScript __importDefault
-								// interop helper and throws "instanceof is not callable" at
-								// runtime. "node-commonjs" preserves real require() semantics.
-								// See issue #79.
-								(data: { request?: string }): string | false =>
-									data.request?.startsWith("node:") ? `node-commonjs ${data.request}` : false,
-								...config.build.externals,
-							],
+							// A single function makes the whole externalization decision so
+							// it never depends on rspack's array fall-through. Leading the
+							// array with a function caused rspack to stop consulting trailing
+							// string entries, so user-configured externals were bundled and
+							// hard-failed to resolve instead of being externalized (#81).
+							externals: (data: { request?: string }): string | false => {
+								const request = data.request;
+								if (!request) {
+									return false;
+								}
+								// node: builtins are externalized with CommonJS require()
+								// semantics. Output is ESM (output.module), so the default
+								// "module" type makes require("node:*") inside bundled CJS deps
+								// return an ESM namespace object. That breaks the TypeScript
+								// __importDefault interop helper and throws "instanceof is not
+								// callable" at runtime. "node-commonjs" preserves real
+								// require() semantics. See issue #79.
+								if (request.startsWith("node:")) {
+									return `node-commonjs ${request}`;
+								}
+								// User-configured externals: not bundled, left as runtime
+								// imports with the default external type.
+								// `ignore` takes precedence over `externals`: a module in
+								// both lists is stubbed via resolve.alias, not externalized.
+								if (externalsSet.has(request) && !ignoreSet.has(request)) {
+									return request;
+								}
+								return false;
+							},
 							cleanDistPath: false,
 							minify: config.build.minify,
 							sourceMap: config.build.sourceMap ? { js: "source-map" as const } : false,
@@ -174,6 +220,12 @@ function bundleEntry(
 					cause: new Error(`rsbuild close() failed: ${error}`),
 				}),
 		});
+
+		// Remove the private stub directory now the bundle has been written.
+		if (stubDir !== undefined) {
+			const dir = stubDir;
+			yield* Effect.ignore(Effect.try(() => rmSync(dir, { recursive: true, force: true })));
+		}
 
 		const outputPath = resolve(outputDir, `${entry.type}.js`);
 		const size = yield* Effect.try({

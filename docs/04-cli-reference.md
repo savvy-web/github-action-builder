@@ -1,4 +1,4 @@
-# CLI Reference
+# CLI reference
 
 Complete reference for the `github-action-builder` command-line interface.
 
@@ -67,9 +67,9 @@ Build without persisting locally:
 github-action-builder build --no-persist
 ```
 
-**Build Process:**
+**Build process:**
 
-The build command:
+`build` runs four steps in order:
 
 1. Loads configuration from `action.config.ts` (or defaults)
 2. Validates the project (unless `--no-validate`)
@@ -88,15 +88,15 @@ Validating...
 Building...
 
 Build Summary:
-  main: 89.2 KB (1234ms) -> dist/main.js
-  post: 12.5 KB (567ms) -> dist/post.js
+  main: <size> (<time>) -> dist/main.js
+  post: <size> (<time>) -> dist/post.js
 
-Total time: 1801ms
+Total time: <total>
 
 Build completed successfully!
 ```
 
-**Exit Codes:**
+**Exit codes:**
 
 | Code | Meaning |
 | --- | --- |
@@ -134,15 +134,15 @@ Validate with custom config:
 github-action-builder validate --config ./my-config.ts
 ```
 
-**What Gets Validated:**
+**What gets validated:**
 
-The validate command checks:
+`validate` checks three things:
 
 1. **Configuration**
    * Config file syntax (if provided)
    * Schema validation for all options
 
-2. **Entry Points**
+2. **Entry points**
    * `src/main.ts` exists (required)
    * `src/pre.ts` exists (if configured)
    * `src/post.ts` exists (if configured)
@@ -153,7 +153,7 @@ The validate command checks:
    * Matches GitHub's action metadata schema
    * `runs.using` is set to `node24`
 
-**Validation Output:**
+**Validation output:**
 
 Example validation output:
 
@@ -186,7 +186,7 @@ Validation Results:
 Validation failed with 2 errors
 ```
 
-**Exit Codes:**
+**Exit codes:**
 
 | Code | Meaning |
 | --- | --- |
@@ -195,7 +195,7 @@ Validation failed with 2 errors
 
 ## github-action-builder init
 
-Create a new GitHub Action project with all required files.
+Create a new GitHub Action project, including every file the action needs to build.
 
 **Usage:**
 
@@ -220,8 +220,8 @@ github-action-builder init <action-name> [options]
 Create a new action project:
 
 ```bash
-npx @savvy-web/github-action-builder init my-awesome-action
-cd my-awesome-action
+npx @savvy-web/github-action-builder init my-action
+cd my-action
 npm install
 npm run build
 ```
@@ -232,9 +232,9 @@ Overwrite existing files:
 github-action-builder init my-action --force
 ```
 
-**Generated Files:**
+**Generated files:**
 
-The init command creates a complete project structure:
+`init` writes this project structure:
 
 ```text
 my-action/
@@ -293,7 +293,7 @@ export default GitHubAction.create({
 });
 ```
 
-**Init Output:**
+**Init output:**
 
 ```text
 Created my-action/
@@ -311,14 +311,14 @@ Next steps:
   npm run build
 ```
 
-**Exit Codes:**
+**Exit codes:**
 
 | Code | Meaning |
 | --- | --- |
 | `0` | Project created successfully |
 | `1` | Directory exists (use `--force`) |
 
-## Global Options
+## Global options
 
 These options work with all commands:
 
@@ -340,24 +340,20 @@ github-action-builder build --help
 github-action-builder --version
 ```
 
-## Environment Variables
+## Environment variables
 
-The CLI respects these environment variables:
+Two environment variables change CLI behavior:
 
 | Variable | Effect |
 | --- | --- |
 | `CI=true` | Enables strict mode (warnings become errors) |
 | `GITHUB_ACTIONS=true` | Enables strict mode |
 
-### CI Detection
+### CI detection
 
-In CI environments, the builder automatically enables strict mode:
+When `CI` or `GITHUB_ACTIONS` is set, the builder switches on strict mode: validation warnings are treated as errors and the build fails on any issue. This stops a marginal action.yml from shipping just because no human watched the log.
 
-* Validation warnings become errors
-* Build fails on any issue
-* Ensures quality gates in CI pipelines
-
-Override with the `strict` configuration option:
+To opt out, set the `strict` configuration option:
 
 ```typescript
 // action.config.ts
@@ -368,9 +364,9 @@ export default defineConfig({
 });
 ```
 
-## Using with npm Scripts
+## Using with npm scripts
 
-Add scripts to your `package.json`:
+Wire the commands into `package.json`:
 
 ```json
 {
@@ -399,8 +395,8 @@ npx @savvy-web/github-action-builder validate
 npx @savvy-web/github-action-builder init
 ```
 
-## Related Documentation
+## Related documentation
 
-* [Configuration](./configuration.md) - All configuration options
-* [Getting Started](./getting-started.md) - Project setup
-* [Troubleshooting](./troubleshooting.md) - Common issues
+* [Configuration](./02-configuration.md) - All configuration options
+* [Getting started](./01-getting-started.md) - Project setup
+* [Troubleshooting](./06-troubleshooting.md) - Common issues
