@@ -124,6 +124,8 @@ interface BuildService {
 * Writes `dist/package.json` with `{ "type": "module" }`
 * Emits plain ESM, with no `eval("require")` hacks
 * Tree-shakes through rspack and externalizes `node:` builtins
+* Produces exactly one `.js` file per entry — dynamic `import()` calls in action source are folded back into the parent bundle (`asyncChunks: false`) so `action.yml` can always reference a predictable path
+* Shims `__dirname` and `__filename` inside the ESM bundle so CJS dependencies that reference those globals work without being externalized
 
 ## Layer composition
 

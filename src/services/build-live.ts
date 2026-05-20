@@ -193,6 +193,22 @@ function bundleEntry(
 						performance: {
 							chunkSplit: { strategy: "all-in-one" },
 						},
+						tools: {
+							// Output is ESM (`output.module`). CommonJS dependencies that
+							// reference the module globals `__dirname` / `__filename` — e.g.
+							// `@cyclonedx/cyclonedx-library` — throw "__dirname is not defined"
+							// once bundled, because ESM has no such globals. `"node-module"`
+							// makes rspack derive them from `import.meta.url`.
+							rspack: {
+								node: { __dirname: "node-module", __filename: "node-module" },
+								// A committed GitHub Action is cleaner as one file per entry.
+								// `asyncChunks: false` folds dynamically-imported code into the
+								// parent chunk, so a dynamic `import()` in the source no longer
+								// emits a separate `<id>.js` chunk — the build produces just
+								// `main.js` / `pre.js` / `post.js`. Tree-shaking is unaffected.
+								output: { asyncChunks: false },
+							},
+						},
 					},
 				}),
 			catch: (error) =>
