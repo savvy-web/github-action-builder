@@ -4,8 +4,8 @@ type: architecture
 status: current
 completeness: 95
 created: 2026-01-29
-updated: 2026-05-15
-last-synced: 2026-05-15
+updated: 2026-05-20
+last-synced: 2026-05-20
 authors:
   - C. Spencer Beggs
 tags:
@@ -174,7 +174,8 @@ interface BuildService {
 - Cleans `dist/` directory before building (configurable)
 - Bundles each detected entry point
 - Writes `dist/package.json` with `{ "type": "module" }`
-- Enforces single-file output via `all-in-one` chunk strategy
+- Enforces single-file output: `all-in-one` chunk strategy plus `asyncChunks: false` so dynamic imports do not emit separate chunk files
+- Injects `__dirname` and `__filename` shims via `tools.rspack.node` so CJS deps that reference these globals work inside the ESM bundle
 - Releases rsbuild resources via `buildResult.close()` after each entry
 
 ### PersistLocalService (`src/services/persist-local.ts`)
@@ -319,10 +320,8 @@ The builder automatically detects which optional entry points exist using
 | `src/pre.ts` | `dist/pre.js` |
 | `src/post.ts` | `dist/post.js` |
 | (generated) | `dist/package.json` |
-| (if chunks exist) | `dist/*.js` (dynamic imports) |
 
-All outputs are self-contained ESM bundles with all dependencies included.
-The output structure is **flat** - all files go directly in `dist/`.
+All outputs are self-contained ESM bundles with all dependencies included. Dynamic imports inside action source are folded back into the parent entry file (`asyncChunks: false`), so the output structure is always flat — exactly one `.js` file per detected entry point.
 
 ### Build Defaults
 
@@ -529,6 +528,18 @@ const rsbuildConfig = {
   },
   performance: {
     chunkSplit: { strategy: "all-in-one" },  // Single-file output
+  },
+  tools: {
+    rspack: {
+      // CJS deps that reference __dirname / __filename (e.g. @cyclonedx/cyclonedx-library)
+      // throw "__dirname is not defined" when bundled into ESM. "node-module" makes rspack
+      // derive these globals from import.meta.url.
+      node: { __dirname: "node-module", __filename: "node-module" },
+      // Prevent dynamic import() calls from emitting separate chunk files.
+      // Each action entry must be a single file; asyncChunks: false folds
+      // dynamically-imported code back into the parent chunk without affecting tree-shaking.
+      output: { asyncChunks: false },
+    },
   },
 };
 ```
@@ -990,7 +1001,7 @@ Each error carries contextual data:
 ### Why `@rsbuild/core`?
 
 - Clean ESM output without `eval("require")` hacks (ncc's webpack 4 runtime broke Node 24's strict ESM format detection)
-- Proper CJS-to-ESM interop via rspack (replaces ncc's broken webpack 4 approach); `node:` builtins are forced to `node-commonjs` external type so bundled CJS deps that call `__importDefault(require("node:stream"))` receive real CJS module exports rather than an ESM namespace — without this, `instanceof` checks on Node built-in classes throw at runtime
+- Proper CJS-to-ESM interop via rspack: `node:` builtins forced to `node-commonjs` external type so bundled CJS deps receive real CJS exports rather than an ESM namespace (prevents `instanceof` failures); `__dirname`/`__filename` shims via `tools.rspack.node` so CJS deps that reference those globals work inside the ESM bundle
 - Tree-shaking via rspack dead code elimination
 - Already in the Savvy Web ecosystem (`@savvy-web/rslib-builder` uses rspack)
 - Programmatic API: `createRsbuild()` + `.build()` for clean integration
@@ -1077,6 +1088,8 @@ Resolved questions from initial design:
 | `node:` external type | `node-commonjs` via function external | RegExp external with ESM output resolves builtins as ESM namespace; CJS deps doing `__importDefault(require("node:stream"))` then get a non-callable `.default`, breaking `instanceof`. Function external forces `createRequire(import.meta.url)("node:stream")` which returns real CJS exports. |
 | Externals array form (#81 regression) | Single function replaces function + string array | Leading an `externals` array with a function caused rspack to stop consulting trailing string entries; user-configured string externals were bundled instead of externalized. A single function that handles all cases (`node:` → `node-commonjs`, user strings → default, everything else → bundle) eliminates the fall-through dependency. |
 | `build.ignore` stub mechanism | Throwing `.mjs` stub written to `tmpdir()`, aliased via `resolve.alias` with `$` exact-match suffix | Ignored modules must be removed from the bundle without relying on them being available at runtime (unlike `externals`). A stub that throws gives a clear error message if a module is accidentally loaded. The `$` suffix prevents partial matches (e.g., `foo$` matches `foo` but not `foobar`). `ignore` takes precedence over `externals` — a module in both lists is stubbed. |
+| `__dirname` / `__filename` shims | `tools.rspack.node: { __dirname: "node-module", __filename: "node-module" }` | CJS dependencies that reference these module globals (e.g. `@cyclonedx/cyclonedx-library`) throw `"__dirname is not defined"` when bundled into an ESM output. The `"node-module"` option makes rspack inject shims derived from `import.meta.url`, restoring the expected string values without requiring those deps to be externalized. |
+| `asyncChunks: false` | Set via `tools.rspack.output.asyncChunks: false` | Dynamic `import()` calls in action source would otherwise emit separate numbered chunk files alongside the entry. A committed GitHub Action must be a single self-contained file per entry so `action.yml` can reference a known path. Disabling async chunks folds all dynamically-imported code back into the parent bundle. Tree-shaking is unaffected. |
 
 ---
 
