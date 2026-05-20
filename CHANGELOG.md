@@ -1,5 +1,11 @@
 # @savvy-web/github-action-builder
 
+## 0.7.1
+
+### Bug Fixes
+
+* [`9814a9e`](https://github.com/savvy-web/github-action-builder/commit/9814a9eb094e55143fb4079d1ffb021f36c3ae05) Fix `__dirname` and `__filename` being undefined in ESM action bundles by injecting CJS compatibility shims, and ensure each action entry produces a single predictable output file by disabling async chunks.
+
 ## 0.7.0
 
 ### Features
