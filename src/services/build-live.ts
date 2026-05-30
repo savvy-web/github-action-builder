@@ -3,9 +3,8 @@
  * BuildService Layer implementation.
  *
  */
-import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createRsbuild } from "@rsbuild/core";
 import { Effect, Layer } from "effect";
 
@@ -124,21 +123,19 @@ function bundleEntry(
 		const outputDir = resolve(cwd, "dist");
 
 		// Modules listed in `build.ignore` are aliased to a throwing stub so
-		// they are neither bundled nor resolved against node_modules. The stub
-		// lives in a private per-build temp directory created with mkdtemp, so
-		// a predictable shared path cannot be pre-created or symlinked by
-		// another process. See
+		// they are neither bundled nor resolved against node_modules. See
 		// docs/superpowers/specs/2026-05-15-build-ignore-option-design.md.
 		const externalsSet = new Set(config.build.externals);
 		const ignoreSet = new Set(config.build.ignore);
 		const ignoreAlias: Record<string, string> = {};
-		let stubDir: string | undefined;
 		if (config.build.ignore.length > 0) {
-			stubDir = yield* Effect.try({
-				try: () => mkdtempSync(join(tmpdir(), "github-action-builder-")),
-				catch: (error) => new WriteError({ path: tmpdir(), cause: error }),
-			});
-			const stubPath = resolve(stubDir, "ignore-stub.mjs");
+			// rspack embeds the stub's path verbatim as the ignored modules' module
+			// id, so the path must be deterministic — a per-build `mkdtemp` directory
+			// made the committed bundle change on every run (#94). This cache path is
+			// project-local (under node_modules, not a world-writable shared tmp), so
+			// a fixed name keeps the symlink-safety property the original design (#81)
+			// relied on while making the output reproducible.
+			const stubPath = resolve(cwd, "node_modules", ".cache", "github-action-builder", "ignore-stub.mjs");
 			yield* writeFile(stubPath, IGNORE_STUB_SOURCE);
 			for (const moduleName of config.build.ignore) {
 				ignoreAlias[`${moduleName}$`] = stubPath;
@@ -187,6 +184,10 @@ function bundleEntry(
 								return false;
 							},
 							cleanDistPath: false,
+							// Keep third-party license banners inline instead of extracting them
+							// to `*.LICENSE.txt` sidecars (rspack's "linked" behavior), which are
+							// committed-action noise — while still preserving attribution (#94).
+							legalComments: "inline",
 							minify: config.build.minify,
 							sourceMap: config.build.sourceMap ? { js: "source-map" as const } : false,
 						},
@@ -236,12 +237,6 @@ function bundleEntry(
 					cause: new Error(`rsbuild close() failed: ${error}`),
 				}),
 		});
-
-		// Remove the private stub directory now the bundle has been written.
-		if (stubDir !== undefined) {
-			const dir = stubDir;
-			yield* Effect.ignore(Effect.try(() => rmSync(dir, { recursive: true, force: true })));
-		}
 
 		const outputPath = resolve(outputDir, `${entry.type}.js`);
 		const size = yield* Effect.try({
