@@ -31,10 +31,7 @@ pnpm-release.json
 
 # Claude AI files
 .claude/settings.local.json
-# Temporary api-extractor files created during build
-.claude/settings.local.json
 .claude/scheduled_tasks.lock
-.claude/plans
 .claude/cache
 .claude/plans/
 .claude/plugins-debug.log

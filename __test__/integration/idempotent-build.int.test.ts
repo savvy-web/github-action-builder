@@ -12,7 +12,7 @@
  * made that path — and therefore the bundle — change on every run.
  */
 import { createHash } from "node:crypto";
-import { cpSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -72,10 +72,6 @@ describe("issue #94: idempotent builds", () => {
 			throw new Error(`build 2 failed: ${r2.error ?? "unknown error"}`);
 		}
 		second = readFileSync(mainJs, "utf8");
-
-		// Dump both bundles for out-of-band diffing while diagnosing the bug.
-		writeFileSync("/tmp/issue94-a.js", first);
-		writeFileSync("/tmp/issue94-b.js", second);
 	}, 240_000);
 
 	it("produces byte-identical output across builds", () => {
